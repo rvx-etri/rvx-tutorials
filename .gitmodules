@@ -1,0 +1,6 @@
+[submodule "rvx_init"]
+	path = rvx_init
+	url = https://github.com/rvx-etri/rvx_init.git
+[submodule "rvx_install"]
+	path = rvx_install
+	url = https://github.com/rvx-etri/rvx_install.git

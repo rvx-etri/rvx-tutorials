@@ -1,0 +1,160 @@
+PYTHON3_VERSION_TO_INSTALL=3.8.16
+#PYTHON3_VERSION_TO_INSTALL=3.9.18
+ifndef PYTHON_CONFIG_FILE
+PYTHON_CONFIG_FILE=${CURDIR}/rvx_python_config.mh
+endif
+
+ifeq ($(OS),Windows_NT)
+	PYTHON3_CMD_CANDIDATE_LIST=${shell where python3*} ${shell where python}
+else
+	PYTHON3_CMD_CANDIDATE_LIST=${shell which -a python3}
+endif
+
+-include ${PYTHON_CONFIG_FILE}
+
+ifndef PYTHON3_CMD
+	PYTHON3_CMD=${PYTHON3_CMD_CANDIDATE_LIST}
+endif
+
+ifndef PIP3_CMD_MANUAL
+	#ifeq ($(OS),Windows_NT)
+	PIP3_CMD=${PYTHON3_CMD} -m pip
+else
+	PIP3_CMD=${PIP3_CMD_MANUAL}
+endif
+
+ifndef RVX_INIT_HOME
+RVX_INIT_HOME=${CURDIR}/rvx_init
+endif
+
+python_centos_manual:
+	#sudo yum install python2
+	sudo yum install zlib zlib-devel openssl openssl-devel bzip2-devel libffi-devel
+	sudo yum install tcl-devel tk-devel
+	make python_manual
+
+python_ubuntu_manual:
+	sudo apt install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev
+	sudo apt install tk-dev
+	make python_manual
+
+python_manual:
+	if ! [ -f Python-${PYTHON3_VERSION_TO_INSTALL}.tar.xz ] ;	\
+	then \
+		wget https://www.python.org/ftp/python/${PYTHON3_VERSION_TO_INSTALL}/Python-${PYTHON3_VERSION_TO_INSTALL}.tar.xz; \
+	fi
+	sudo rm -rf ./Python-${PYTHON3_VERSION_TO_INSTALL}
+	tar xvf Python-${PYTHON3_VERSION_TO_INSTALL}.tar.xz
+	cd ./Python-${PYTHON3_VERSION_TO_INSTALL}; ./configure --enable-shared --with-tcltk-includes='-I/usr/include' --with-tcltk-libs='-L/usr/lib -ltcl -ltk'; make; sudo make install
+
+python_centos:
+	sudo yum install python3
+	-sudo yum install python3-pip
+	-sudo yum install python3-tk
+	-sudo yum install python3-tkinter
+	sudo yum upgrade python3
+	-sudo yum upgrade python3-pip
+	-sudo yum upgrade python3-tk
+	-sudo yum upgrade python3-tkinter
+
+python_ubuntu:
+	sudo apt-get install python3
+	-sudo apt-get install python3-pip
+	-sudo apt-get install python3-tk
+	-sudo apt-get install python3-tkinter
+	sudo apt-get upgrade python3
+	-sudo apt-get upgrade python3-pip
+	-sudo apt-get upgrade python3-tk
+	-sudo apt-get upgrade python3-tkinter
+
+config_python:
+ifeq ($(OS),Windows_NT)
+	@echo PYTHON3_CMD=${CURDIR}/python3.bat>${PYTHON_CONFIG_FILE}
+	@echo @echo off>${CURDIR}/python3.bat
+	@echo ${PYTHON3_CMD_CANDIDATE_LIST} %%*>>${CURDIR}/python3.bat
+else
+	@echo PYTHON3_CMD=${PYTHON3_CMD_CANDIDATE_LIST}>${PYTHON_CONFIG_FILE}
+endif
+
+reconfig_python:
+	@echo PYTHON3_CMD=${PYTHON3_CMD}>${PYTHON_CONFIG_FILE}
+ifdef PIP3_CMD_MANUAL
+	@echo PIP3_CMD_MANUAL=${PIP3_CMD_MANUAL}>>${PYTHON_CONFIG_FILE}
+endif
+
+check_python:
+	@echo "// You MUST use the version between 3.8 and 3.10. //"
+	@echo from ${PYTHON_CONFIG_FILE}
+	@echo PYTHON3_CMD=${PYTHON3_CMD}
+	@${PYTHON3_CMD} --version
+
+install_pip:
+	@echo ${PYTHON3_CMD} -m ensurepip --upgrade
+	@echo PYTHON3_CMD=${PYTHON3_CMD}>${PYTHON_CONFIG_FILE}
+
+install_pip_old:
+	@wget https://bootstrap.pypa.io/get-pip.py
+	@echo ${PYTHON3_CMD} ./get-pip.py
+	@echo PYTHON3_CMD=${PYTHON3_CMD}>${PYTHON_CONFIG_FILE}
+
+check_pip:
+	@echo PIP3_CMD=${PIP3_CMD}
+	@${PIP3_CMD} --version
+
+fix_pip: install_pip
+
+USER_PIP_LIST=setuptools distro cryptography pyelftools configparser Pillow
+
+pip_private:
+	-${PIP3_CMD} install --upgrade pip
+	${PIP3_CMD} install ${USER_PIP_LIST}
+	${PIP3_CMD} install --upgrade ${USER_PIP_LIST}
+
+pip_public:
+	-sudo ${PIP3_CMD} install --upgrade pip
+	-${PIP3_CMD} uninstall ${USER_PIP_LIST}
+	sudo ${PIP3_CMD} install ${USER_PIP_LIST}
+	sudo ${PIP3_CMD} install --upgrade ${USER_PIP_LIST}
+
+pip_dev:
+	${PIP3_CMD} install networkx openpyxl tk
+
+pip: install_pip pip_private
+
+pip3: pip
+
+pip_list:
+	@${PIP3_CMD} list -v
+
+rvx_init_git:
+	-git submodule deinit -f rvx_init
+	-rm -rf .git/modules/rvx_init
+	-git rm -rf ./rvx_init
+	-rm -rf ./rvx_init
+	git clone https://github.com/rvx-etri/rvx_init.git
+
+rvx_init_subgit:
+	-git submodule deinit -f rvx_init
+	-rm -rf .git/modules/rvx_init
+	-git rm -rf ./rvx_init
+	-rm -rf ./rvx_init
+	git submodule add -f https://github.com/rvx-etri/rvx_init.git
+
+update_rvx_init:
+	@if [ -f ${RVX_INIT_HOME}/rvx_init.mh ] ;	\
+	then \
+		cp ${RVX_INIT_HOME}/rvx_init.mh ./rvx_init.mh ; \
+	fi
+
+submodule:
+	git submodule init
+	git submodule update --force
+
+submodule_lfs: submodule
+	git submodule foreach --recursive git lfs pull
+
+check_rvx_init:
+	@echo ${RVX_INIT_HOME}
+	@echo ${PYTHON_CONFIG_FILE}
+
+-include ${RVX_INIT_HOME}/rvx_init_extended.mh
