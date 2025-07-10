@@ -2,8 +2,8 @@
 <version_info>
   <rvx_version.path>kshan/rvx_server_manager_v2</rvx_version.path>
   <rvx_version.url>private</rvx_version.url>
-  <rvx_version.commit>7332c62</rvx_version.commit>
-  <rvx_version.date>2025-07-09-10-10</rvx_version.date>
+  <rvx_version.commit>19ca2cb</rvx_version.commit>
+  <rvx_version.date>2025-07-10-16-41</rvx_version.date>
   <rvx_devkit.path>rvx_server_manager_v2/rvx_devkit</rvx_devkit.path>
   <rvx_devkit.url>private</rvx_devkit.url>
   <rvx_devkit.commit>300635f</rvx_devkit.commit>
