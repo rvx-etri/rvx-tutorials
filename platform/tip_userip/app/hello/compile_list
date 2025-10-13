@@ -1,3 +1,0 @@
-all:./src
-all:./include
-all:../../user/api
