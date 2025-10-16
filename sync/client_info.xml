@@ -2,12 +2,12 @@
 <version_info>
   <rvx_version.path>kshan/rvx_server_manager_v2</rvx_version.path>
   <rvx_version.url>private</rvx_version.url>
-  <rvx_version.commit>5d7aa36</rvx_version.commit>
-  <rvx_version.date>2025-10-13-12-10</rvx_version.date>
+  <rvx_version.commit>1f296bc</rvx_version.commit>
+  <rvx_version.date>2025-10-16-17-36</rvx_version.date>
   <rvx_devkit.path>rvx_server_manager_v2/rvx_devkit</rvx_devkit.path>
   <rvx_devkit.url>private</rvx_devkit.url>
-  <rvx_devkit.commit>a8fd45f</rvx_devkit.commit>
-  <rvx_devkit.date>2025-10-13-11-48</rvx_devkit.date>
+  <rvx_devkit.commit>58fbcf8</rvx_devkit.commit>
+  <rvx_devkit.date>2025-10-16-15-43</rvx_devkit.date>
   <rvx_binary.path>rvx_server_manager_v2/rvx_binary</rvx_binary.path>
   <rvx_binary.url>https://github.com/rvx-etri/rvx_binary.git</rvx_binary.url>
   <rvx_binary.commit>fe4c137</rvx_binary.commit>
@@ -18,12 +18,12 @@
   <rvx_install.date>2025-10-13-11-49</rvx_install.date>
   <rvx_synthesizer_obfuscated.path>rvx_server_manager_v2/rvx_synthesizer_obfuscated</rvx_synthesizer_obfuscated.path>
   <rvx_synthesizer_obfuscated.url>https://github.com/rvx-etri/rvx_synthesizer_obfuscated.git</rvx_synthesizer_obfuscated.url>
-  <rvx_synthesizer_obfuscated.commit>3ab03cd</rvx_synthesizer_obfuscated.commit>
-  <rvx_synthesizer_obfuscated.date>2025-10-13-10-52</rvx_synthesizer_obfuscated.date>
+  <rvx_synthesizer_obfuscated.commit>7732825</rvx_synthesizer_obfuscated.commit>
+  <rvx_synthesizer_obfuscated.date>2025-10-16-17-22</rvx_synthesizer_obfuscated.date>
   <rvx_platform_example.path>rvx_server_manager_v2/rvx_platform_example</rvx_platform_example.path>
   <rvx_platform_example.url>https://github.com/rvx-etri/rvx_platform_example.git</rvx_platform_example.url>
-  <rvx_platform_example.commit>af4e945</rvx_platform_example.commit>
-  <rvx_platform_example.date>2025-10-13-10-51</rvx_platform_example.date>
+  <rvx_platform_example.commit>8f76faa</rvx_platform_example.commit>
+  <rvx_platform_example.date>2025-10-16-17-20</rvx_platform_example.date>
   <rvx_library>stable</rvx_library>
   <synced_from>rvx_alpha</synced_from>
   <synced_before>true</synced_before>
