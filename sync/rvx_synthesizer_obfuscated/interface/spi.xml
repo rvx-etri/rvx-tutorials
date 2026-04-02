@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<rvx>
+	<def_interface>
+		<name>spi</name>
+		<role>sender</role>
+		<signal>
+			<name>clk</name>
+			<width>1</width>
+			<port>output</port>
+		</signal>
+		<signal>
+			<name>cs</name>
+			<width>1</width>
+			<port>output</port>
+		</signal>
+		<signal>
+			<name>dq0</name>
+			<width>1</width>
+			<port>output</port>
+		</signal>
+		<signal>
+			<name>dq1</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+	</def_interface>
+</rvx>

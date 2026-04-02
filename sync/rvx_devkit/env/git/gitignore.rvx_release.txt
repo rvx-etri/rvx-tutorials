@@ -1,0 +1,10 @@
+*~
+*.swp
+*.swo
+__pycache__
+
+rvx_setup.sh
+rvx_*.log
+rvx_*.cfg
+rvx_python_config.mh
+.rvx_*

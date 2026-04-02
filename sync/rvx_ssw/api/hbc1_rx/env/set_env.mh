@@ -1,0 +1,3 @@
+include ${RVX_SSW_HOME}/api/hbc1_common/env/set_env.mh
+C_SRC += $(wildcard ${RVX_SSW_HOME}/api/hbc1_rx/src/*.c)
+INCLUDES += -I${RVX_SSW_HOME}/api/hbc1_rx/src

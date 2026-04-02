@@ -1,0 +1,71 @@
+<?xml version="1.0" ?>
+<rvx>
+	<dec_ip>
+		<name>gpio</name>
+		<hdl_name>ERVP_GPIO</hdl_name>
+
+		<def_parameter>
+			<name>BW_DATA</name>
+			<value>32</value>
+		</def_parameter>
+		<def_parameter>
+			<name>BW_GPIO</name>
+			<value>1</value>
+		</def_parameter>
+
+		<signal>
+			<name>clk</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>clk_system</comm_type>
+		</signal>
+
+		<signal>
+			<name>rstnn</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<reset_property>
+			<id>rstnn</id>
+			<type>asynch</type>
+			<type>negative</type>
+			<group>2</group>
+		</reset_property>
+
+		<signal>
+			<name>tick_gpio</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>tick_gpio</comm_type>
+    </signal>
+
+		<interface>
+			<name>mmio</name>
+			<hdl_prefix/>
+			<library_name>gpio_mmio</library_name>
+			<parameter>
+				<id>bw_data</id>
+				<value>BW_DATA</value>
+			</parameter>
+			<role>receiver</role>
+			<comm_type>gpio_mmio</comm_type>
+			<sync>clk</sync>
+			<init>rstnn</init>
+		</interface>
+
+		<interface>
+			<name>gpio</name>
+			<library_name>tristate_oe</library_name>
+			<parameter>
+				<id>bw_data</id>
+				<value>BW_GPIO</value>
+			</parameter>
+			<role>sender</role>
+			<comm_type>special</comm_type>
+			<sync>clk</sync>
+			<init>rstnn</init>
+		</interface>
+
+	</dec_ip>
+</rvx>

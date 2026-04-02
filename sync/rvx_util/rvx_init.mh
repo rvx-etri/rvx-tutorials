@@ -1,0 +1,105 @@
+PYTHON3_VERSION_TO_INSTALL=3.8.16
+ifndef PYTHON_CONFIG_FILE
+PYTHON_CONFIG_FILE=./rvx_python_config.mh
+endif
+
+ifeq ($(OS),Windows_NT)
+	PYTHON3_CMD_CANDIDATE_LIST=${shell where python3*} ${shell where python}
+else
+	PYTHON3_CMD_CANDIDATE_LIST=${shell which -a python3}
+endif
+
+-include ${PYTHON_CONFIG_FILE}
+
+ifndef PYTHON3_CMD
+	PYTHON3_CMD=${PYTHON3_CMD_CANDIDATE_LIST}
+endif
+
+ifndef PIP3_CMD_MANUAL
+  #ifeq ($(OS),Windows_NT)
+	PIP3_CMD=${PYTHON3_CMD} -m pip
+else
+	PIP3_CMD=${PIP3_CMD_MANUAL}
+endif
+
+ifndef RVX_INIT_HOME
+RVX_INIT_HOME=./rvx_init
+endif
+
+python_centos_manual:
+	#sudo yum install python2
+	sudo yum install zlib zlib-devel openssl openssl-devel
+	wget https://www.python.org/ftp/python/${PYTHON3_VERSION_TO_INSTALL}/Python-${PYTHON3_VERSION_TO_INSTALL}.tar.xz
+	tar xvf Python-${PYTHON3_VERSION_TO_INSTALL}.tar.xz
+	cd ./Python-${PYTHON3_VERSION_TO_INSTALL}; ./configure; make; sudo make install
+
+python_centos:
+	sudo yum install python3
+	-sudo yum install python3-tk
+	sudo yum upgrade python3
+	-sudo yum upgrade python3-tk
+
+python_ubuntu:
+	sudo apt-get install python3
+	-sudo apt-get install python3-tk
+	sudo apt-get upgrade python3
+	-sudo apt-get upgrade python3-tk
+
+config_python:
+ifeq ($(OS),Windows_NT)
+	@echo PYTHON3_CMD=${CURDIR}/python3.bat>${PYTHON_CONFIG_FILE}
+	@echo @echo off>${CURDIR}/python3.bat
+	@echo ${PYTHON3_CMD_CANDIDATE_LIST} %%*>>${CURDIR}/python3.bat
+else
+	@echo PYTHON3_CMD=${PYTHON3_CMD_CANDIDATE_LIST}>${PYTHON_CONFIG_FILE}
+endif
+
+reconfig_python:
+	@echo PYTHON3_CMD=${PYTHON3_CMD}>${PYTHON_CONFIG_FILE}
+ifdef PIP3_CMD_MANUAL
+	@echo PIP3_CMD_MANUAL=${PIP3_CMD_MANUAL}>>${PYTHON_CONFIG_FILE}
+endif
+
+check_python:
+	@echo PYTHON3_CMD=${PYTHON3_CMD}
+	@${PYTHON3_CMD} --version
+
+install_pip:
+	@echo ${PYTHON3_CMD} -m ensurepip
+	@echo PYTHON3_CMD=${PYTHON3_CMD}>${PYTHON_CONFIG_FILE}
+
+check_pip:
+	@echo PIP3_CMD=${PIP3_CMD}
+	@${PIP3_CMD} --version
+
+fix_pip: install_pip
+
+install_python_package:
+	-${PIP3_CMD} install --upgrade pip
+	${PIP3_CMD} install distro numpy cryptography pyelftools configparser
+	${PIP3_CMD} install --upgrade distro numpy cryptography pyelftools configparser
+
+install_python_package_dev:
+	${PIP3_CMD} install networkx
+
+pip3: install_pip install_python_package
+
+pip: pip3
+
+rvx_init_git:
+	@if ! [ -d ./rvx_init ] ;	\
+	then \
+		git clone https://bitbucket.org/kyuseung_han/rvx_init.git ; \
+	fi
+
+update_rvx_init:
+	@if [ -f ${RVX_INIT_HOME}/rvx_init.mh ] ;	\
+	then \
+		cp ${RVX_INIT_HOME}/rvx_init.mh ./rvx_init.mh ; \
+	fi
+
+submodule:
+	git submodule init
+	git submodule update --force
+
+-include ${RVX_INIT_HOME}/rvx_init_extended.mh

@@ -1,0 +1,65 @@
+<?xml version="1.0" ?>
+<rvx>
+	<dec_ip>
+		<name>inter_router_fifo</name>
+		<hdl_name>MUNOC_INTER_ROUTER_FIFO</hdl_name>
+
+		<def_parameter>
+			<name>BW_FNI_PHIT</name>
+			<value>8</value>
+		</def_parameter>
+		<def_parameter>
+			<name>BW_BNI_PHIT</name>
+			<value>8</value>
+		</def_parameter>
+
+		<signal>
+			<name>clk</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<signal>
+			<name>rstnn</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<interface>
+			<name>ni_slave</name>
+			<library_name>ni</library_name>
+			<hdl_prefix></hdl_prefix>
+			<role>receiver</role>
+			<comm_type>special</comm_type>
+			<parameter>
+				<id>bw_fni_phit</id>
+				<value>BW_FNI_PHIT</value>
+			</parameter>
+			<parameter>
+				<id>bw_bni_phit</id>
+				<value>BW_BNI_PHIT</value>
+			</parameter>
+			<sync>clk</sync>
+			<init>rstnn</init>
+		</interface>
+
+		<interface>
+			<name>ni_master</name>
+			<library_name>ni</library_name>
+			<hdl_prefix></hdl_prefix>
+			<role>sender</role>
+			<comm_type>special</comm_type>
+			<parameter>
+				<id>bw_fni_phit</id>
+				<value>BW_FNI_PHIT</value>
+			</parameter>
+			<parameter>
+				<id>bw_bni_phit</id>
+				<value>BW_BNI_PHIT</value>
+			</parameter>
+			<sync>clk</sync>
+			<init>rstnn</init>
+		</interface>
+
+	</dec_ip>
+</rvx>

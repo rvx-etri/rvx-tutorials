@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+<rvx>
+	<dec_ip>
+		<name>clock_gate</name>
+		<hdl_name>ERVP_CLOCK_GATE</hdl_name>
+
+		<signal>
+			<name>clk</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<signal>
+			<name>enable</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<signal>
+			<name>gclk</name>
+			<width>1</width>
+			<port>output</port>
+		</signal>
+
+		<core>
+			<sync>clk</sync>
+			<init>rstnn</init>
+		</core>
+	</dec_ip>
+</rvx>

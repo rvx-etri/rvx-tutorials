@@ -1,0 +1,47 @@
+<?xml version="1.0" ?>
+<rvx>
+	<dec_ip>
+		<name>real_clock</name>
+		<hdl_name>ERVP_REAL_CLOCK</hdl_name>
+
+		<signal>
+			<name>clk</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>clk_system</comm_type>
+		</signal>
+
+		<signal>
+			<name>rstnn</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<reset_property>
+			<id>rstnn</id>
+			<type>asynch</type>
+			<type>negative</type>
+			<group>1</group>
+		</reset_property>
+
+		<core>
+			<sync>clk</sync>
+			<init>rstnn</init>
+		</core>
+
+		<signal>
+			<name>tick_1us</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>tick_1us</comm_type>
+		</signal>
+
+		<signal>
+			<name>real_clock</name>
+			<width>64</width>
+			<port>output</port>
+			<comm_type>real_clock</comm_type>
+		</signal>
+
+	</dec_ip>
+</rvx>

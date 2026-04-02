@@ -1,0 +1,4 @@
+C_SRC += $(wildcard ${RVX_SSW_HOME}/api/jpegls_encoder/src/*.c)
+INCLUDES += -I${RVX_SSW_HOME}/api/jpegls_encoder/src
+
+include ${RVX_SSW_HOME}/api/jpegls_decoder/env/set_env.mh

@@ -1,0 +1,17 @@
+CROSS_COMPILE = ${RVX_COMPILER_BASIC}
+RISCV_ARCH=rv32im
+RISCV_ABI=ilp32
+CFLAGS += -march=${RISCV_ARCH} -mabi=${RISCV_ABI}
+LD_FLAGS += -march=${RISCV_ARCH} -mabi=${RISCV_ABI}
+
+INCLUDES += -I${RVX_SSW_HOME}/core/orca_plus
+ASM_SRC += ${RVX_SSW_HOME}/core/orca_plus/start.S
+ASM_SRC += ${RVX_SSW_HOME}/core/orca_plus/orca_plus.S
+ifeq ($(USE_FREERTOS),true)
+	ASM_SRC += ${RVX_SSW_HOME}/core/orca_plus/portasm.S
+else
+	ASM_SRC += ${RVX_SSW_HOME}/core/orca_plus/entry.S
+endif
+C_SRC += ${RVX_SSW_HOME}/core/orca_plus/core_dependent.c
+
+include ${RVX_SSW_HOME}/riscv/riscv_compile.mh

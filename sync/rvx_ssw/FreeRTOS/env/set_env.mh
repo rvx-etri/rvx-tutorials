@@ -1,0 +1,7 @@
+FreeRTOS_SRC_DIR = ${RVX_SSW_HOME}/FreeRTOS/src
+
+C_SRC += $(wildcard $(FreeRTOS_SRC_DIR)/*.c) 
+C_SRC += $(FreeRTOS_SRC_DIR)/portable/MemMang/heap_4.c
+C_SRC += $(FreeRTOS_SRC_DIR)/portable/GCC/RISCV/port.c
+INCLUDES += -I$(FreeRTOS_SRC_DIR)/include
+INCLUDES += -I$(FreeRTOS_SRC_DIR)/portable/GCC/RISCV

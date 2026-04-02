@@ -1,0 +1,9 @@
+*_synthesized.xml
+*_memorymap*.*
+*.v
+*.v?
+*.o
+*.hex
+*.c
+*.tcl
+generate_hex_from_*

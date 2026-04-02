@@ -1,0 +1,23 @@
+#daemon configuration
+telnet_port 4444
+
+##interface
+adapter_khz "${JTAG_KHZ}"
+interface ftdi
+ftdi_device_desc ""${DEVICE_NAME}""
+ftdi_vid_pid 0x"${VENDOR}" 0x"${PRODUCT}"
+
+ftdi_layout_init "${FTDI_LAYOUT_INIT_VALUE}"
+ftdi_layout_signal nSRST -oe 0x0200
+ftdi_layout_signal nTRST -data 0x0100 -oe 0x0100
+ftdi_layout_signal LED -data 0x0800
+
+##jtag scan chain
+jtag newtap rvp noc -irlen 8 -expected-id 0xc47f80a1
+
+##target configuration
+target create rvp.noc grvt -endian little -chain-position rvp.noc
+
+init
+
+source ./set_ocd_env.tcl

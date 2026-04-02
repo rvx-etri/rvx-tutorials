@@ -1,0 +1,186 @@
+# ****************************************************************************
+# ****************************************************************************
+# Copyright SoC Design Research Group, All rights reserved.
+# Electronics and Telecommunications Research Institute (ETRI)
+# 
+# THESE DOCUMENTS CONTAIN CONFIDENTIAL INFORMATION AND KNOWLEDGE
+# WHICH IS THE PROPERTY OF ETRI. NO PART OF THIS PUBLICATION IS
+# TO BE USED FOR ANY OTHER PURPOSE, AND THESE ARE NOT TO BE
+# REPRODUCED, COPIED, DISCLOSED, TRANSMITTED, STORED IN A RETRIEVAL
+# SYSTEM OR TRANSLATED INTO ANY OTHER HUMAN OR COMPUTER LANGUAGE,
+# IN ANY FORM, BY ANY MEANS, IN WHOLE OR IN PART, WITHOUT THE
+# COMPLETE PRIOR WRITTEN PERMISSION OF ETRI.
+# ****************************************************************************
+# 2019-04-03
+# Kyuseung Han (han@etri.re.kr)
+# ****************************************************************************
+# ****************************************************************************
+
+EXAMPLE_PLATFORM_LIST = tip_o1a
+
+INFO_SHARED_FILENAME = cloud_info_common.xml
+INFO_PRIVATE_FILE = ${CURDIR}/cloud_info.xml
+SYNC_HISTORY_FILE = ${CURDIR}/synced.log
+
+COMPRESSED_COMPILE_FILENAME = compile.tar
+BUILD_RESULT_FILENAME = result.tar.gz
+
+SYNC_FILENAME = sync.tar.gz
+SYNTHESIZER_FILENAME = rvx_synthesizer_obfuscated.tar.gz
+XML_FILENAME = xml.tar
+ARCH_FILENAME = arch.tar.gz
+HEADER_FILENAME= header.tar.gz
+SIM_RTL_FILENAME = sim_rtl.tar.gz
+IMP_INSTANCE_FILENAME = imp_fpga.tar.gz
+
+ENGINE_WS=./platform
+ENGINE_TARGET=home
+ENGINE_CMD_LIST=server_mode sync_check
+-include ${RVX_ENV}/engine/rvx_make2engine.mh
+
+cloud.sync:
+	-rm -rf ./sync
+	mkdir sync
+	cp -f ${RVX_SHARED_HOME}/rvx_devkit.tar.gz ./sync
+	cp -f ${RVX_SHARED_HOME}/rvx_util.tar.gz ./sync
+	cp -f ${RVX_SHARED_HOME}/rvx_hwlib.tar.gz ./sync
+	cp -f ${RVX_SHARED_HOME}/rvx_ssw.tar.gz ./sync
+	tar -czf ${SYNC_FILENAME} ./sync
+	rm -rf ./sync
+
+cloud.check:
+	cp -f ${CURDIR}/${INFO_SHARED_FILENAME} ${INFO_PRIVATE_FILE}
+	@if [ -f ${SYNC_HISTORY_FILE} ] ;	\
+	then \
+		${PYTHON3_CMD} ${RVX_UTIL_HOME}/manage_version_info.py -name synced_before -value true -o ${INFO_PRIVATE_FILE}; \
+	else \
+		${PYTHON3_CMD} ${RVX_UTIL_HOME}/manage_version_info.py -name synced_before -value false -o ${INFO_PRIVATE_FILE}; \
+	fi
+
+cloud.init:
+	cp -f ${RVX_SHARED_HOME}/${INFO_SHARED_FILENAME} ${CURDIR} # MUST copy, DO NOT link
+	ln -s ${RVX_SHARED_HOME}/${SYNC_FILENAME} ${CURDIR}
+	ln -s ${RVX_SHARED_HOME}/${SYNTHESIZER_FILENAME} ${CURDIR}
+	make --no-print-directory server_mode 
+
+cloud.clean:
+	-@rm -rf *.tar *.tar.gz *.tar.xz *.log *.txt
+	-@rm -rf ./src
+
+cloud._sync_check:
+	@make --no-print-directory sync_check ENGINE_WS=${CURDIR}/platform
+
+$(addprefix cloud.clean., ${EXAMPLE_PLATFORM_LIST}):cloud.clean.%:
+	cd ${RVX_DEVKIT_HOME}/platform/$(*) && make distclean ENGINE_LOG_DIR=${CURDIR}
+
+app._setup_material: cloud._sync_check
+	-@rm -rf ./src ./include ./etc ${BUILD_RESULT_FILENAME}
+	@tar -xf ./${COMPRESSED_COMPILE_FILENAME}
+
+app.build: app._setup_material platform._dir_check
+	@if ! [ -f ./platform/${PLATFORM_NAME}/app/Makefile ] ;	\
+	then \
+		cd ./platform/${PLATFORM_NAME} && make app_base ENGINE_LOG_DIR=${CURDIR}; \
+	fi
+	@if ! [ -f ./platform/${PLATFORM_NAME}/app/${APP_NAME}/Makefile ] ;	\
+	then \
+		cd ./platform/${PLATFORM_NAME}/app && make new APP_NAME=${APP_NAME} ENGINE_LOG_DIR=${CURDIR}; \
+	fi
+	@cd ./platform/${PLATFORM_NAME}/app/${APP_NAME}; make build_dir TARGET_IMP_CLASS=${TARGET_IMP_CLASS} BUILD_MODE=${BUILD_MODE} ENGINE_LOG_DIR=${CURDIR}
+	@cd ./platform/${PLATFORM_NAME}/app/${APP_NAME}/${TARGET_IMP_CLASS}.${BUILD_MODE} && make clean ENGINE_LOG_DIR=${CURDIR}
+	@if [ -d ./src ] ;	\
+	then \
+		mv ./src ./platform/${PLATFORM_NAME}/app/${APP_NAME}/${TARGET_IMP_CLASS}.${BUILD_MODE}; \
+	fi
+	@if [ -d ./include ] ;	\
+	then \
+		mv ./include ./platform/${PLATFORM_NAME}/app/${APP_NAME}/${TARGET_IMP_CLASS}.${BUILD_MODE}; \
+	fi
+	@if [ -f ./etc/each_app_config.mh ] ;	\
+	then \
+		mv ./etc/each_app_config.mh ./platform/${PLATFORM_NAME}/app/${APP_NAME}; \
+	fi
+	@if [ -f ./etc/rvx_each.mh ] ;	\
+	then \
+		mv ./etc/rvx_each.mh ./platform/${PLATFORM_NAME}/app/${APP_NAME}; \
+	fi
+	@cd ./platform/${PLATFORM_NAME}/app/${APP_NAME}/${TARGET_IMP_CLASS}.${BUILD_MODE}; \
+		make compile tar_result TAR_FILE=${CURDIR}/${BUILD_RESULT_FILENAME} ENGINE_LOG_DIR=${CURDIR}
+
+app.build_incr: app._setup_material platform._dir_check
+	-@cd ./platform/${PLATFORM_NAME}/app/${APP_NAME}/${TARGET_IMP_CLASS}.${BUILD_MODE} && rm -rf ./src ./include ./etc
+	@if [ -d ./src ] ;	\
+	then \
+		mv ./src ./platform/${PLATFORM_NAME}/app/${APP_NAME}/${TARGET_IMP_CLASS}.${BUILD_MODE}; \
+	fi
+	@if [ -d ./include ] ;	\
+	then \
+		mv ./include ./platform/${PLATFORM_NAME}/app/${APP_NAME}/${TARGET_IMP_CLASS}.${BUILD_MODE}; \
+	fi
+	@if [ -f ./etc/each_app_config.mh ] ;	\
+	then \
+		mv ./etc/each_app_config.mh ./platform/${PLATFORM_NAME}/app/${APP_NAME}; \
+	fi
+	@if [ -f ./etc/rvx_each.mh ] ;	\
+	then \
+		mv ./etc/rvx_each.mh ./platform/${PLATFORM_NAME}/app/${APP_NAME}; \
+	fi
+	@cd ./platform/${PLATFORM_NAME}/app/${APP_NAME}/${TARGET_IMP_CLASS}.${BUILD_MODE}; \
+		make compile_incremental tar_result TAR_FILE=${CURDIR}/${BUILD_RESULT_FILENAME} ENGINE_LOG_DIR=${CURDIR}
+
+app_base.clean:
+	-@rm -rf ./platform/${PLATFORM_NAME}/app/
+
+app.clean:
+	-@rm -rf ./platform/${PLATFORM_NAME}/app/${APP_NAME}
+
+app.run:
+	@if ! [ -f ./platform/${PLATFORM_NAME}/app/${APP_NAME}/vp.${BUILD_MODE}/${APP_NAME}.${PLATFORM_NAME}.elf ] ; \
+	then \
+		echo "[ERROR] no build"; \
+	else \
+		cd ./platform/${PLATFORM_NAME}/app/${APP_NAME}/vp.${BUILD_MODE}; make run; \
+	fi
+
+debugger.start:
+	cd ./platform/${PLATFORM_NAME}/sim_vp && make debug_server
+
+debugger.stop:
+	-@kill $(shell ps aux | grep "qemu-system-riscv" | awk '{print $$2}')
+
+platform._dir_check:
+	@if ! [ -f ./platform/${PLATFORM_NAME}/Makefile ]; \
+	then \
+		cd ./platform && make new PLATFORM_NAME=${PLATFORM_NAME} ENGINE_LOG_DIR=${CURDIR}; \
+	fi
+
+platform.sim_vp: cloud._sync_check
+	-@cd ./platform/${PLATFORM_NAME} && make sim_vp_cloud
+
+platform.sim_rtl_syn: cloud._sync_check platform._dir_check
+	-@rm -rf ${SIM_RTL_FILENAME}
+	@cd ./platform/${PLATFORM_NAME} && make sim_rtl_syn ENGINE_LOG_DIR=${CURDIR}
+	@cd ./platform/${PLATFORM_NAME} && make tar_sim_rtl TAR_FILE=${CURDIR}/${SIM_RTL_FILENAME}
+
+platform.imp_fpga_module: cloud._sync_check platform._dir_check
+	-@rm -rf ${IMP_INSTANCE_FILENAME}
+	-@rm -rf ./platform/${PLATFORM_NAME}/${IMP_INSTANCE_NAME}
+	@cd ./platform/${PLATFORM_NAME} && make imp_fpga_dir TARGET_IMP_CLASS=${TARGET_IMP_CLASS} IMP_INSTANCE_NAME=${IMP_INSTANCE_NAME} ENGINE_LOG_DIR=${CURDIR}
+	@cd ./platform/${PLATFORM_NAME}/${IMP_INSTANCE_NAME} && make module ENGINE_LOG_DIR=${CURDIR}
+	@cd ./platform/${PLATFORM_NAME} && make tar_imp_fpga TAR_FILE=${CURDIR}/${IMP_INSTANCE_FILENAME} IMP_INSTANCE_NAME=${IMP_INSTANCE_NAME}
+
+platform.syn_arch: cloud._sync_check platform._prepare_syn_arch platform._syn_arch
+
+platform._prepare_syn_arch:
+	@tar -xf ./${XML_FILENAME}
+	@rm -rf ${XML_FILENAME} ./${PLATFORM_NAME}.${ARCH_FILENAME} ./${PLATFORM_NAME}.${HEADER_FILENAME}
+	@cd ./platform && make new PLATFORM_NAME=${PLATFORM_NAME} ENGINE_LOG_DIR=${CURDIR}
+	@mv -f ${PLATFORM_NAME}.xml ./platform/${PLATFORM_NAME}
+
+platform._syn_arch:
+	@cd ./platform/${PLATFORM_NAME}; \
+		make syn_arch ENGINE_LOG_DIR=${CURDIR}; \
+		rm -rf ./arch/Makefile; \
+		make tar_arch TAR_FILE=${CURDIR}/${PLATFORM_NAME}.${ARCH_FILENAME}; \
+		#make header; \
+		#make tar_header TAR_FILE=${CURDIR}/${PLATFORM_NAME}.${HEADER_FILENAME}

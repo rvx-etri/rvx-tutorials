@@ -1,0 +1,31 @@
+export RVX_RELEASE_HOME="${RVX_RELEASE_HOME}"
+
+export RVX_DEVKIT_HOME=${RVX_RELEASE_HOME}/rvx_devkit
+export RVX_SHARED_HOME=${RVX_RELEASE_HOME}
+export RVX_UTIL_HOME=${RVX_SHARED_HOME}/rvx_util
+if [ -d ${RVX_SHARED_HOME}/rvx_synthesizer ]
+then
+export RVX_SYNTHESIZER_HOME=${RVX_SHARED_HOME}/rvx_synthesizer
+else
+if [ -d ${RVX_SHARED_HOME}/rvx_synthesizer_limited ]
+then
+export RVX_SYNTHESIZER_HOME=${RVX_SHARED_HOME}/rvx_synthesizer_limited
+else
+if [ -d ${RVX_SHARED_HOME}/rvx_synthesizer_obfuscated ]
+then
+export RVX_SYNTHESIZER_HOME=${RVX_SHARED_HOME}/rvx_synthesizer_obfuscated
+fi
+fi
+fi
+export RVX_SSW_HOME=${RVX_SHARED_HOME}/rvx_ssw
+export RVX_HWLIB_HOME=${RVX_SHARED_HOME}/hwlib_basic
+
+export RVX_ENV=${RVX_DEVKIT_HOME}/env
+export RVX_ENGINE=${RVX_ENV}/engine
+
+if [ -f ${RVX_RELEASE_HOME}/rvx_binary/rvx_setup.sh ]
+then
+source ${RVX_RELEASE_HOME}/rvx_binary/rvx_setup.sh
+fi
+
+unset RVP_OCD_DIR

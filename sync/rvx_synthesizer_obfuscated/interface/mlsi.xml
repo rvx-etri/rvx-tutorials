@@ -1,0 +1,107 @@
+<?xml version="1.0" ?>
+<rvx>
+  <def_interface>
+    <name>mlsi</name>
+    <hdl_prefix></hdl_prefix>
+    <role>sender</role>
+
+    <def_parameter>
+      <name>bw_axi_data</name>
+      <value>32</value>
+    </def_parameter>
+
+    <def_parameter>
+      <name>lsu_para</name>
+      <value>0</value>
+    </def_parameter>
+
+    <def_parameter>
+      <name>bw_lpi_burden</name>
+      <value>1</value>
+    </def_parameter>
+
+    <def_parameter>
+      <name>matrix_num_col</name>
+      <value>4</value>
+    </def_parameter>
+
+    <def_parameter>
+      <name>bw_tensor_scalar</name>
+      <value>33</value>
+    </def_parameter>
+
+    <signal>
+      <name>inst_wvalid</name>
+      <width>1</width>
+      <port>output</port>
+    </signal>
+    <signal>
+      <name>inst_wdata</name>
+      <width>`BW_DCA_MATRIX_LSU_INST</width>
+      <port>output</port>
+    </signal>
+    <signal>
+      <name>inst_wready</name>
+      <width>1</width>
+      <port>input</port>
+    </signal>
+    <signal>
+      <name>inst_decode_finish</name>
+      <width>1</width>
+      <port>input</port>
+    </signal>
+    <signal>
+      <name>inst_execute_finish</name>
+      <width>1</width>
+      <port>input</port>
+    </signal>
+    <signal>
+      <name>inst_busy</name>
+      <width>1</width>
+      <port>input</port>
+    </signal>
+
+    <signal>
+      <name>load_tensor_row_wvalid</name>
+      <width>1</width>
+      <port>input</port>
+    </signal>
+    <signal>
+      <name>load_tensor_row_wlast</name>
+      <width>1</width>
+      <port>input</port>
+    </signal>
+    <signal>
+      <name>load_tensor_row_wdata</name>
+      <width>bw_tensor_scalar*matrix_num_col</width>
+      <port>input</port>
+    </signal>
+    <signal>
+      <name>load_tensor_row_wready</name>
+      <width>1</width>
+      <port>output</port>
+    </signal>
+
+    <signal>
+      <name>store_tensor_row_rvalid</name>
+      <width>1</width>
+      <port>input</port>
+    </signal>
+    <signal>
+      <name>store_tensor_row_rlast</name>
+      <width>1</width>
+      <port>input</port>
+    </signal>
+    <signal>
+      <name>store_tensor_row_rready</name>
+      <width>1</width>
+      <port>output</port>
+    </signal>
+    <signal>
+      <name>store_tensor_row_rdata</name>
+      <width>bw_tensor_scalar*matrix_num_col</width>
+      <port>output</port>
+    </signal>
+
+  </def_interface>
+</rvx>

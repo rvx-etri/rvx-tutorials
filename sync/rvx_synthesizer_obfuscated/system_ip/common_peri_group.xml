@@ -1,0 +1,121 @@
+<?xml version="1.0" ?>
+<rvx>
+	<dec_ip>
+		<name>common_peri_group</name>
+		<hdl_name>ERVP_COMMON_PERI_GROUP</hdl_name>
+
+		<def_parameter>
+			<name>BW_ADDR</name>
+			<value>1</value>
+		</def_parameter>
+
+		<def_parameter>
+			<name>BW_DATA</name>
+			<value>32</value>
+		</def_parameter>
+
+		<def_parameter>
+			<name>NUM_LOCK</name>
+			<value>1</value>
+		</def_parameter>
+
+		<def_parameter>
+			<name>NUM_AUTO_ID</name>
+			<value>1</value>
+		</def_parameter>
+
+		<def_parameter>
+			<name>NUM_GLOBAL_TAG</name>
+			<value>1</value>
+		</def_parameter>
+
+		<signal>
+			<name>clk</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>clk_system</comm_type>
+		</signal>
+
+		<signal>
+			<name>rstnn</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<reset_property>
+			<id>rstnn</id>
+			<type>asynch</type>
+			<type>negative</type>
+			<group>1</group>
+		</reset_property>
+
+		<core>
+			<sync>clk</sync>
+			<init>rstnn</init>
+		</core>
+
+		<interface>
+			<name>no_name</name>
+			<library_name>apb</library_name>
+			<hdl_prefix></hdl_prefix>
+			<role>receiver</role>
+			<comm_type>memory:all</comm_type>
+			<memorymap>
+				<size>2**16</size>
+			</memorymap>
+			<parameter>
+				<id>bw_addr</id>
+				<value>BW_ADDR</value>
+			</parameter>
+			<parameter>
+				<id>bw_data</id>
+				<value>32</value>
+			</parameter>
+			<sync>clk</sync>
+			<init>rstnn</init>
+		</interface>
+
+		<signal>
+			<name>lock_status_list</name>
+			<width>NUM_LOCK</width>
+			<port>output</port>
+			<comm_type>lock_status_list</comm_type>
+    </signal>
+
+    <signal>
+			<name>thread_status_list</name>
+			<width>32</width>
+			<port>output</port>
+			<comm_type>thread_status_list</comm_type>
+		</signal>
+
+		<signal>
+			<name>real_clock</name>
+			<width>64</width>
+			<port>input</port>
+			<comm_type>real_clock</comm_type>
+		</signal>
+
+		<signal>
+			<name>global_tag_list</name>
+			<width>NUM_GLOBAL_TAG</width>
+			<port>output</port>
+			<comm_type>global_tag_list</comm_type>
+		</signal>
+
+		<signal>
+			<name>system_tick_config</name>
+			<width>11</width>
+			<port>output</port>
+			<comm_type>system_tick_config</comm_type>
+		</signal>
+
+		<signal>
+			<name>core_tick_config</name>
+			<width>11</width>
+			<port>output</port>
+			<comm_type>core_tick_config</comm_type>
+		</signal>
+
+	</dec_ip>
+</rvx>

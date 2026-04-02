@@ -1,0 +1,4 @@
+include ${RVX_SSW_HOME}/api/paco/env/set_env.mh
+
+C_SRC += $(wildcard ${RVX_SSW_HOME}/api/pact/src/*.c)
+INCLUDES += -I${RVX_SSW_HOME}/api/pact/src

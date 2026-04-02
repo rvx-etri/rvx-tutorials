@@ -1,0 +1,128 @@
+## ****************************************************************************
+## ****************************************************************************
+## Copyright SoC Design Research Group, All rights reserved.    
+## Electronics and Telecommunications Research Institute (ETRI)
+##
+## THESE DOCUMENTS CONTAIN CONFIDENTIAL INFORMATION AND KNOWLEDGE 
+## WHICH IS THE PROPERTY OF ETRI. NO PART OF THIS PUBLICATION IS 
+## TO BE USED FOR ANY OTHER PURPOSE, AND THESE ARE NOT TO BE 
+## REPRODUCED, COPIED, DISCLOSED, TRANSMITTED, STORED IN A RETRIEVAL 
+## SYSTEM OR TRANSLATED INTO ANY OTHER HUMAN OR COMPUTER LANGUAGE, 
+## IN ANY FORM, BY ANY MEANS, IN WHOLE OR IN PART, WITHOUT THE 
+## COMPLETE PRIOR WRITTEN PERMISSION OF ETRI.
+## ****************************************************************************
+## 2020-08-10
+## Kyuseung Han (han@etri.re.kr)
+## ****************************************************************************
+## ****************************************************************************
+
+TEMPLATE_FILE = ${RVX_ENV}/soc/Makefile.soc.template
+include ${RVX_UTIL_HOME}/template_makefile.mh
+
+-include ./target_platform.mh
+
+TARGET_PLATFORM_NAME = $(shell basename $(TARGET_PLATFORM))
+
+include ${RVX_ENV}/soc/sim_env.mh
+
+CODE_DIRNAME=code
+CODE_DIR=${CURDIR}/${CODE_DIRNAME}
+RTL_COMMON_DIR=${CODE_DIR}/${RTL_COMMON_DIRNAME}
+SIM_COMMON_DIR=${CODE_DIR}/${SIM_COMMON_DIRNAME}
+RVX_SIM_DIR=${CODE_DIR}/sim_10000
+
+SIM_ENV_LIST=rvx_sim_10000 memory_sim_01000 pad_sim_00100 pre_sim_00010 post_sim_00001
+
+rvx_sim: rvx_sim_10000
+
+memory_sim: memory_sim_01000
+
+pad_sim: pad_sim_00100
+
+pre_sim: pre_sim_00010
+
+post_sim: post_sim_00001
+
+setup: arch app ${CODE_DIRNAME} info rvx_sim_10000
+
+arch:
+	-rm -rf ${CURDIR}/arch
+	cd ${TARGET_PLATFORM} && cp -r ./arch ${CURDIR}
+	cd ./arch && rm -rf ./rtl
+	mkdir -p ./arch/rtl/src
+	touch ./arch/rtl/src/${TARGET_PLATFORM_NAME}.v
+
+app:
+	-rm -rf ${CURDIR}/app
+	cd ${TARGET_PLATFORM} && cp -r ./app ${CURDIR}
+	cd ./app && make clean
+	-rm -rf ${CURDIR}/user/api
+	mkdir -p ${CURDIR}/user
+	if [ -d ${TARGET_PLATFORM}/user/api ] ; \
+	then \
+		cd ${TARGET_PLATFORM}/user && cp -r ./api ${CURDIR}/user; \
+	fi;
+
+${CODE_DIRNAME}: _rtl_code _rvx_sim_code _rtl_old _rtl_elab rtl_customize
+
+_rtl_code:
+	-rm -rf ${RTL_COMMON_DIR}
+	cd ${TARGET_PLATFORM} && make sim_rtl
+	cd ${TARGET_PLATFORM}/sim_rtl && make export_common_rtl EXPORT_DIR=${RTL_COMMON_DIR}
+	-rm -rf ${SIM_COMMON_DIR}
+	cd ${TARGET_PLATFORM}/sim_rtl && make export_sim_rtl EXPORT_DIR=${SIM_COMMON_DIR}
+
+_rtl_elab: _rtl_elab_body
+
+_rtl_elab_body:
+	python3 ${RVX_ENV}/util/elaborate_verilog.py -cmd elab.body -p ${RTL_COMMON_DIR}
+	python3 ${RVX_ENV}/util/elaborate_verilog.py -cmd elab.body -p ${RVX_SIM_DIR} -i ${RTL_COMMON_DIR}
+
+_rtl_elab_all:
+	python3 ${RVX_ENV}/util/elaborate_verilog.py -cmd elab.all -p ${RTL_COMMON_DIR}
+	python3 ${RVX_ENV}/util/elaborate_verilog.py -cmd elab.body -p ${RVX_SIM_DIR} -i ${RTL_COMMON_DIR}
+	mv ${RTL_COMMON_DIR}/include/* ${SIM_COMMON_DIR}/include
+	rm -rf ${RTL_COMMON_DIR}/include
+
+_rvx_sim_code:
+	-rm -rf ${RVX_SIM_DIR}
+	mkdir -p ${RVX_SIM_DIR}/src
+	mkdir -p ${RVX_SIM_DIR}/include
+	cd ${RTL_COMMON_DIR}/include && mv ./sim_info.vh ${RVX_SIM_DIR}/include
+	-cd ${SIM_COMMON_DIR}/include && mv sim_user_region.vh ${RVX_SIM_DIR}/include
+	cd ${SIM_COMMON_DIR}/include && mv *dram_cell*.vh ${RVX_SIM_DIR}/include
+	cd ${SIM_COMMON_DIR}/src && mv *_sim.v ${RVX_SIM_DIR}/src
+	cd ${SIM_COMMON_DIR}/src && mv *_*ram*.v ${RVX_SIM_DIR}/src
+	cd ${SIM_COMMON_DIR}/src && mv clock_* ${RVX_SIM_DIR}/src
+	cd ${SIM_COMMON_DIR}/src && mv reset_* ${RVX_SIM_DIR}/src
+	cd ${SIM_COMMON_DIR}/src && mv buf.v ${RVX_SIM_DIR}/src
+	cd ${SIM_COMMON_DIR}/src && mv *clock_pll* ${RVX_SIM_DIR}/src
+	cd ${SIM_COMMON_DIR}/src && mv tristate_buffer* ${RVX_SIM_DIR}/src
+	cd ${RVX_SIM_DIR}/src && mv clock_generator.v ${SIM_COMMON_DIR}/src
+	-@for temp_file in ${IMP_DEPENDENT_FILE_LIST}; do	\
+		mv -f ${RTL_COMMON_DIR}/src/$$temp_file ${RVX_SIM_DIR}/src;	\
+		mv -f ${RTL_COMMON_DIR}/include/$$temp_file ${RVX_SIM_DIR}/include;	\
+	done
+
+_rtl_old:
+	-rm -rf ${CODE_DIR}/rtl_old
+	mkdir ${CODE_DIR}/rtl_old
+	-@for temp_file in ${CUSTOM_FILE_LIST}; do	\
+		mv -f ${RTL_COMMON_DIR}/src/$$temp_file ${CODE_DIR}/rtl_old;	\
+		mv -f ${RTL_COMMON_DIR}/include/$$temp_file ${CODE_DIR}/rtl_old;	\
+	done
+	echo "rtl_old" > ${CODE_DIR}/.gitignore
+
+rtl_customize::
+
+${SIM_ENV_LIST}:
+	-rm -rf ./$@
+	mkdir ./$@
+	cp -f ${RVX_ENV}/soc/Makefile.$@.template ./$@/Makefile
+	cp -f ${RVX_ENV}/git/gitignore.make_only.txt ./$@/.gitignore
+	cd ./$@ && make app_list
+
+info:
+	python3 ${RVX_ENV}/engine/rvx_unified_engine.py -ws ${TARGET_PLATFORM}/.. -cmd imp_fpga.info -imp_dir ${RTL_COMMON_DIR} -log .
+
+.PHONY: arch app ${CODE_DIRNAME} ${SIM_ENV_LIST}

@@ -1,0 +1,15 @@
+make_all_subdir: $(addprefix make., $(MAKE_SUB_DIR))
+
+$(addprefix make., $(MAKE_SUB_DIR)):make.%:
+	@if [ -d $(*) ] ;	\
+	then \
+		cd $(*); make all; \
+	fi;
+
+make_clean_subdir: $(addprefix clean., $(MAKE_SUB_DIR))
+
+$(addprefix clean., $(MAKE_SUB_DIR)):clean.%:
+	@if [ -d $(*) ] ;	\
+	then \
+		cd $(*); make clean; \
+	fi;

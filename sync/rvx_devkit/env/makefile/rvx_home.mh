@@ -1,0 +1,40 @@
+## ****************************************************************************
+## ****************************************************************************
+## Copyright SoC Design Research Group, All rights reserved.    
+## Electronics and Telecommunications Research Institute (ETRI)
+##
+## THESE DOCUMENTS CONTAIN CONFIDENTIAL INFORMATION AND KNOWLEDGE 
+## WHICH IS THE PROPERTY OF ETRI. NO PART OF THIS PUBLICATION IS 
+## TO BE USED FOR ANY OTHER PURPOSE, AND THESE ARE NOT TO BE 
+## REPRODUCED, COPIED, DISCLOSED, TRANSMITTED, STORED IN A RETRIEVAL 
+## SYSTEM OR TRANSLATED INTO ANY OTHER HUMAN OR COMPUTER LANGUAGE, 
+## IN ANY FORM, BY ANY MEANS, IN WHOLE OR IN PART, WITHOUT THE 
+## COMPLETE PRIOR WRITTEN PERMISSION OF ETRI.
+## ****************************************************************************
+## 2021-04-15
+## Kyuseung Han (han@etri.re.kr)
+## ****************************************************************************
+## ****************************************************************************
+
+PLATFORM_NAME=None
+APP_NAME=None
+
+ENGINE_WS=${CURDIR}/platform
+ENGINE_TARGET=home
+ENGINE_CMD_LIST=platform_list app_list app_path imp_class_list fpga_list imp_instance_list fpga_instance_list studio_cmd spec_checker_cmd home_git_info devkit_git_info is_debug_mode tool_config_path sync_check platform_file wifi_config aix_config server_mode local_setup localize
+ENGINE_PARA= -p ${PLATFORM_NAME} -a ${APP_NAME}
+
+ifdef OUTPUT_FILE
+ENGINE_PARA += -o ${OUTPUT_FILE}
+endif
+
+-include ${RVX_ENV}/engine/rvx_make2engine.mh
+
+PLATFORM_BASE_DIRNAME=platform_${NAME}
+
+platform_base:
+	@if ! [ -d ./${PLATFORM_BASE_DIRNAME} ] ;	\
+	then \
+		mkdir ./${PLATFORM_BASE_DIRNAME}; \
+	fi
+	@cp -f ./platform/Makefile ./${PLATFORM_BASE_DIRNAME}

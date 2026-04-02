@@ -1,0 +1,8 @@
+
+#ifndef __ERVP_WIFI_INFO_H__
+#define __ERVP_WIFI_INFO_H__
+
+static const char* ervp_wifi_ssid = ""${WIFI_SSID}"";
+static const char* ervp_wifi_passwd = ""${WIFI_PASSWD}"";
+
+#endif

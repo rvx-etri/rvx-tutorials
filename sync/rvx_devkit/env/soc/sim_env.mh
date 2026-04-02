@@ -1,0 +1,52 @@
+## ****************************************************************************
+## ****************************************************************************
+## Copyright SoC Design Research Group, All rights reserved.    
+## Electronics and Telecommunications Research Institute (ETRI)
+##
+## THESE DOCUMENTS CONTAIN CONFIDENTIAL INFORMATION AND KNOWLEDGE 
+## WHICH IS THE PROPERTY OF ETRI. NO PART OF THIS PUBLICATION IS 
+## TO BE USED FOR ANY OTHER PURPOSE, AND THESE ARE NOT TO BE 
+## REPRODUCED, COPIED, DISCLOSED, TRANSMITTED, STORED IN A RETRIEVAL 
+## SYSTEM OR TRANSLATED INTO ANY OTHER HUMAN OR COMPUTER LANGUAGE, 
+## IN ANY FORM, BY ANY MEANS, IN WHOLE OR IN PART, WITHOUT THE 
+## COMPLETE PRIOR WRITTEN PERMISSION OF ETRI.
+## ****************************************************************************
+## 2022-07-05
+## Kyuseung Han (han@etri.re.kr)
+## ****************************************************************************
+## ****************************************************************************
+
+ifdef SIM_TYPE
+ifeq (${SIM_TYPE},rvx_sim)
+SIM_CODE=10000
+endif
+ifeq (${SIM_TYPE},memory_sim)
+SIM_CODE=01000
+endif
+ifeq (${SIM_TYPE},pad_sim)
+SIM_CODE=00100
+endif
+ifeq (${SIM_TYPE},pre_sim)
+SIM_CODE=00010
+endif
+ifeq (${SIM_TYPE},post_sim)
+SIM_CODE=00001
+endif
+
+SIM_TYPE_WITH_CODE=${SIM_TYPE}_${SIM_CODE}
+SIM_TYPE_UPPER = $(shell echo ${SIM_TYPE} | tr a-z A-Z)
+endif
+
+RTL_COMMON_DIRNAME=rtl_common_11100
+RTL_MEMORY_DIRNAME=rtl_memory_01100
+RTL_CHIP_DIRNAME=rtl_gate_00100
+
+SIM_COMMON_DIRNAME=sim_common_11111
+SIM_FAB_DIRNAME=sim_fab_01111
+
+GATE_DIRNAME=gate_00010
+LAYOUT_DIRNAME=layout_00001
+
+type:
+	@echo ${SIM_TYPE}
+	@echo ${SIM_CODE}

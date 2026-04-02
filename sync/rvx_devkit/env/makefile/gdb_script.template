@@ -1,0 +1,3 @@
+target remote:"${RV_GDB_PORT}"
+load
+set riscv use_compressed_breakpoint off

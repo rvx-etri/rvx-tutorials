@@ -1,0 +1,2 @@
+CXX_SRC += $(wildcard ${RVX_SSW_HOME}/api/lcd_shield/src/*.cpp)
+INCLUDES += -I${RVX_SSW_HOME}/api/lcd_shield/src

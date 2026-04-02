@@ -1,0 +1,154 @@
+## ****************************************************************************
+## ****************************************************************************
+## Copyright SoC Design Research Group, All rights reserved.    
+## Electronics and Telecommunications Research Institute (ETRI)
+##
+## THESE DOCUMENTS CONTAIN CONFIDENTIAL INFORMATION AND KNOWLEDGE 
+## WHICH IS THE PROPERTY OF ETRI. NO PART OF THIS PUBLICATION IS 
+## TO BE USED FOR ANY OTHER PURPOSE, AND THESE ARE NOT TO BE 
+## REPRODUCED, COPIED, DISCLOSED, TRANSMITTED, STORED IN A RETRIEVAL 
+## SYSTEM OR TRANSLATED INTO ANY OTHER HUMAN OR COMPUTER LANGUAGE, 
+## IN ANY FORM, BY ANY MEANS, IN WHOLE OR IN PART, WITHOUT THE 
+## COMPLETE PRIOR WRITTEN PERMISSION OF ETRI.
+## ****************************************************************************
+## 2019-04-15
+## Kyuseung Han (han@etri.re.kr)
+## ****************************************************************************
+## ****************************************************************************
+
+-include ${PLATFORM_DIR}/arch/ssw/env/set_env.mh
+-include ${PLATFORM_DIR}/arch/ssw/env/set_memory.mh
+
+#ifndef USE_IMAGE
+#	USE_IMAGE = false
+#endif
+#ifeq ($(USE_IMAGE),true)
+#	include ${RVX_SSW_HOME}/image/env/set_env.mh
+#endif
+#
+#ifndef USE_MATRIX
+#	USE_MATRIX = false
+#endif
+#ifeq ($(USE_MATRIX),true)
+#	include ${RVX_SSW_HOME}/matrix/env/set_env.mh
+#endif
+
+ifndef USE_FAKEFILE
+	USE_FAKEFILE = false
+endif
+ifeq ($(USE_FAKEFILE),true)
+  DEFINE_CFLAGS += -DUSE_FAKEFILE
+endif
+
+ifndef USE_FREERTOS
+	USE_FREERTOS = false
+endif
+ifeq ($(USE_FREERTOS),true)
+	-include ${RVX_SSW_HOME}/FreeRTOS/env/set_env.mh
+endif
+
+ifndef USE_TEXT_PARSER
+	USE_TEXT_PARSER = false
+endif
+ifeq ($(USE_TEXT_PARSER),true)
+  ifeq ($(USE_FAKEFILE),false)
+    $(error enable USE_FAKEFILE in rvx_each.mh)
+  endif
+	-include ${RVX_SSW_HOME}/text_parser/env/set_env.mh
+endif
+
+ifndef USE_NPX
+	USE_NPX = false
+endif
+ifeq ($(USE_NPX),true)
+  ifeq ($(USE_FAKEFILE),false)
+    $(error enable USE_FAKEFILE in rvx_each.mh)
+  endif
+  ifeq ($(USE_TEXT_PARSER),false)
+    $(error enable USE_TEXT_PARSER in rvx_each.mh)
+  endif
+	-include ${RVX_SSW_HOME}/npx/env/set_env.mh
+endif
+
+ifndef USE_DARKNET
+	USE_DARKNET = false
+endif
+ifeq ($(USE_DARKNET),true)
+	-include ${RVX_SSW_HOME}/darknet/env/set_env.mh
+endif
+
+LD_SCRIPT = ${PLATFORM_DIR}/arch/ssw/env/link.ld
+TARGET_NAME = $(APP_NAME).$(PLATFORM_NAME)
+
+ifeq ($(HW_ENV),vp)
+DEFINE_CFLAGS += -DVP_ENV
+endif
+
+CFLAGS += $(DEFINE_CFLAGS)
+
+CXXFLAGS = ${CFLAGS}
+CXXFLAGS += -fno-rtti
+
+C_SRC += $(wildcard $(SRC_DIR)/*.c)
+CXX_SRC += $(wildcard $(SRC_DIR)/*.cpp)
+CXX_SRC += $(wildcard $(SRC_DIR)/*.cc)
+ASM_SRC += $(wildcard $(SRC_DIR)/*.S)
+
+C_OBJ = $(C_SRC:.c=.o)
+CXX_OBJ = $(CXX_SRC:.cpp=.o)
+ASM_OBJ = $(ASM_SRC:.S=.o)
+
+C_SRC_USER = $(notdir $(wildcard $(SRC_DIR)/*.c))
+CXX_SRC_USER = $(notdir $(wildcard $(SRC_DIR)/*.cpp))
+ASM_SRC_USER = $(notdir $(wildcard $(SRC_DIR)/*.S))
+
+C_OBJ_USER = $(C_SRC_USER:.c=.o)
+CXX_OBJ_USER = $(CXX_SRC_USER:.cpp=.o)
+ASM_OBJ_USER = $(ASM_SRC_USER:.S=.o)
+
+PACO_FUNCTION_DIR = ${PLATFORM_DIR}/user/paco
+INCLUDES += -I${PACO_FUNCTION_DIR}
+C_OBJ_PACO = $(wildcard ${PACO_FUNCTION_DIR}/*.o)
+
+LIB_USER=$(notdir $(basename $(subst lib, ,$(wildcard $(ETC_DIR)/*.a))))
+USE_LIBRARY=-L$(ETC_DIR) $(addprefix -l , ${LIB_USER})
+
+LD_FLAGS += -Wl,--gc-sections
+
+_build: $(TARGET_NAME).elf
+
+clean_elf:
+	-@rm -rf $(TARGET_NAME).elf
+
+$(TARGET_NAME).elf:%.elf: clean_elf $(C_OBJ) $(CXX_OBJ) $(ASM_OBJ) build_paco
+	$(LINKER) -T $(LD_SCRIPT) *.o ${C_OBJ_PACO} $(LD_FLAGS) $(INCLUDES) ${USE_LIBRARY} -o $(TARGET_DIR)/$@
+	@$(OBJDUMP) -D $(TARGET_DIR)/$@ > $(TARGET_DIR)/$*.dump
+
+$(C_OBJ):%.o: %.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c $<
+
+$(CXX_OBJ):%.o: %.cpp
+	$(CC) $(CXXFLAGS) $(INCLUDES) -c $<
+
+$(ASM_OBJ):%.o: %.S
+	$(CC) $(CFLAGS) $(INCLUDES) -c $<
+
+build_paco:
+	@if [ -d ${PACO_FUNCTION_DIR} ]; \
+	then \
+		cd ${PACO_FUNCTION_DIR} && make clean build; \
+	fi
+
+tar_result:
+	-@tar -czf ${TAR_FILE} ${C_OBJ_USER} ${CXX_OBJ_USER} ${ASM_OBJ_USER} ${APP_NAME}.${PLATFORM_NAME}.elf ${APP_NAME}.${PLATFORM_NAME}.dump
+
+_debug:
+ifeq ($(BUILD_MODE),debug)
+	@ddd --debugger ${DEBUGGER} ./${TARGET_NAME}.elf -command=${RVX_ENV}/makefile/gdb_script
+else
+	@echo "\"debug_client\" is not allowed for release mode"
+endif
+
+check:
+	@echo ${C_SRC}
+

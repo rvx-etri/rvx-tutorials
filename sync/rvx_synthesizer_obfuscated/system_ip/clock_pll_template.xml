@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<rvx>
+	<dec_ip>
+		<name>clock_pll_template</name>
+		<hdl_name>CLOCK_PLL</hdl_name>
+
+		<imp_dependent/>
+
+		<signal>
+			<name>external_clk</name>
+			<width>1</width>
+			<port>input</port>
+    </signal>
+
+    <signal>
+			<name>external_clk_pair</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<signal>
+			<name>external_rstnn</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>global_rstnn</comm_type>
+		</signal>
+
+	</dec_ip>
+</rvx>

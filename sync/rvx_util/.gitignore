@@ -1,0 +1,6 @@
+*~
+*.swp
+source
+__pycache__
+bitbucket_username.mh
+rvx_devkit

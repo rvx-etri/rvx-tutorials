@@ -1,0 +1,172 @@
+## ****************************************************************************
+## ****************************************************************************
+## Copyright SoC Design Research Group, All rights reserved.    
+## Electronics and Telecommunications Research Institute (ETRI)
+##
+## THESE DOCUMENTS CONTAIN CONFIDENTIAL INFORMATION AND KNOWLEDGE 
+## WHICH IS THE PROPERTY OF ETRI. NO PART OF THIS PUBLICATION IS 
+## TO BE USED FOR ANY OTHER PURPOSE, AND THESE ARE NOT TO BE 
+## REPRODUCED, COPIED, DISCLOSED, TRANSMITTED, STORED IN A RETRIEVAL 
+## SYSTEM OR TRANSLATED INTO ANY OTHER HUMAN OR COMPUTER LANGUAGE, 
+## IN ANY FORM, BY ANY MEANS, IN WHOLE OR IN PART, WITHOUT THE 
+## COMPLETE PRIOR WRITTEN PERMISSION OF ETRI.
+## ****************************************************************************
+## 2023-01-02
+## Kyuseung Han (han@etri.re.kr)
+## ****************************************************************************
+## ****************************************************************************
+
+## How to init GIT
+# source rvx_etri/rvx_setup.sh
+# make init
+# make config_python
+# edit "rvx_python_config.mh"
+# make check_python
+# make rvx_init_git2
+
+## How to import platform
+# source ./rvx_setup.sh
+# make import_platform IMPORT_PLATFORM_DIR=@#$$%
+
+# ## How to config GIT
+# make config_python
+# edit "rvx_python_config.mh"
+# make check_python
+# make config
+# source ./rvx_setup.sh
+# make install
+
+ifndef RVX_UTIL_HOME
+	RVX_UTIL_HOME=./rvx_util
+endif
+
+TEMPLATE_FILE = ${RVX_ENV}/release/Makefile.export.template
+TEMPLATE_CONFIG = "${TEMPLATE_CONFIG}"
+include ${RVX_UTIL_HOME}/template_makefile.mh
+-include ${RVX_ENV}/makefile/rvx_home.mh
+
+RVX_ETRI_GIT_HOME = "${RVX_ETRI_GIT_HOME}"
+RVX_ETRI_SHARED_HOME = "${RVX_ETRI_SHARED_HOME}"
+RVX_ETRI_DEVKIT_HOME = "${RVX_ETRI_DEVKIT_HOME}"
+
+-include ./rvx_config.mh
+-include ./rvx_init.mh
+
+#################
+# RVX_SUBMODULE #
+#################
+
+RVX_SUBMODULE_LIST= rvx_init rvx_util rvx_ssw rvx_binary rvx_platform_example
+
+########
+# init #
+########
+
+_check_etri_home:
+	$(if $(RVX_ETRI_HOME), , $(error RVX_ETRI_HOME is NOT defined))
+
+init: _check_etri_home
+	cp -f ${RVX_SHARED_HOME}/rvx_init/rvx_init.mh .
+	make update_rvx_init
+	cp -f ${RVX_ENV}/release/rvx_release.rvx_setup.sh.template ./rvx_setup.sh.template
+	cp -f ${RVX_ENV}/git/gitignore.rvx_release.txt ./.gitignore
+	@${PYTHON3_CMD} ${RVX_UTIL_HOME}/configure_template.py -i ${TEMPLATE_FILE} -c RVX_ETRI_GIT_HOME=$(RVX_ETRI_HOME) RVX_ETRI_DEVKIT_HOME=${RVX_DEVKIT_HOME} RVX_ETRI_SHARED_HOME=${RVX_SHARED_HOME} -o Makefile	
+
+########
+# fork #
+########
+
+VERSION_INFO_FILE=${CURDIR}/version_info.xml
+RVX_ETRI_SUBDIR_LIST = local_setup imp_class_info hwlib_basic hwlib_chip hwlib_special
+
+fork_git: distclean import_git import_etri_module tip_hello
+
+distclean: clean
+	rm -rf ${VERSION_INFO_FILE}
+
+import_git: $(addprefix import_git., $(RVX_SUBMODULE_LIST)) import_git_rvx_synthesizer import_git_rvx_devkit install
+
+$(addprefix import_git., $(RVX_SUBMODULE_LIST)):import_git.%:
+	${PYTHON3_CMD} ${RVX_ETRI_SHARED_HOME}/rvx_dev_util/export_git.py -name $(*) -git ${RVX_ETRI_SHARED_HOME}/$(*) -o ${CURDIR}/$(*) -c ${VERSION_INFO_FILE}
+
+import_git_rvx_synthesizer:
+	rm -rf rvx_synthesizer
+	mkdir ./rvx_synthesizer
+	cd ${RVX_ETRI_SHARED_HOME}/rvx_synthesizer && make binary_unlimted TARGET_DIR=${CURDIR}/rvx_synthesizer
+	${PYTHON3_CMD} ${RVX_ETRI_SHARED_HOME}/rvx_util/manage_version_info.py -name rvx_synthesizer -git ${RVX_ETRI_SHARED_HOME}/rvx_synthesizer -o ${VERSION_INFO_FILE}
+
+import_git_rvx_devkit:
+	${PYTHON3_CMD} ${RVX_ETRI_SHARED_HOME}/rvx_dev_util/export_git.py -name rvx_devkit -git ${RVX_ETRI_DEVKIT_HOME} -o ${CURDIR}/rvx_devkit -c ${VERSION_INFO_FILE}
+
+import_etri_module: $(addprefix import_etri_module., $(RVX_ETRI_SUBDIR_LIST))
+
+$(addprefix import_etri_module., $(RVX_ETRI_SUBDIR_LIST)):import_etri_module.%:
+	${PYTHON3_CMD} ${RVX_ETRI_SHARED_HOME}/rvx_dev_util/export_git.py -name $(*) -git ${RVX_ETRI_GIT_HOME}/$(*) -o ${CURDIR}/$(*) -c ${VERSION_INFO_FILE}
+
+tip_hello:
+	mkdir -p ./platform
+	cd ./platform && cp -f ${RVX_ETRI_GIT_HOME}/platform/Makefile .
+	cd ./platform && rm -rf tip_hello
+	cd ./platform && cp -rf ${RVX_ETRI_GIT_HOME}/platform/tip_hello .
+
+reimport_git: import_git.rvx_util import_git.rvx_ssw import_git_rvx_devkit import_etri_module
+
+##########
+# import #
+##########
+
+IMPORT_PLATFORM_NAME = $(shell basename $(IMPORT_PLATFORM_DIR))
+
+_check_import_platform:
+	$(if $(IMPORT_PLATFORM_DIR), , $(error IMPORT_PLATFORM_DIR is NOT defined))
+	@echo $(IMPORT_PLATFORM_DIR)
+
+import: import_platform
+
+import_platform:
+	-git rm -rf ./platform/${IMPORT_PLATFORM_NAME}
+	-rm -rf ./platform/${IMPORT_PLATFORM_NAME}
+	mkdir -p ./platform/${IMPORT_PLATFORM_NAME}
+	cp -r ${IMPORT_PLATFORM_DIR} ./platform/
+	cd ./platform/${IMPORT_PLATFORM_NAME} && make clean
+	cd ./platform/${IMPORT_PLATFORM_NAME} && git add -A .
+
+soc_test:
+	-@git reset ./rvx_util
+	-@git reset ./rvx_ssw
+	-@git reset ./rvx_synthesizer_binary
+	-@git reset ./rvx_binary
+	-@git reset ./rvx_devkit
+	-@git reset ./rvx_hwlib
+	-@if [ -d ./imp_class_info ]; \
+	then \
+		git reset ./imp_class_info; \
+	fi
+	-@if [ -d ./platform/${IMPORT_PLATFORM_NAME} ]; \
+	then \
+		git reset ./platform/${IMPORT_PLATFORM_NAME}; \
+	fi
+
+########
+# user #
+########
+
+clean: clean_config
+
+clean_config:
+	-rm -f .rvx_path_config .rvx_tool_config
+
+config: clean_config
+	-cd ./rvx_binary && make config
+	${PYTHON3_CMD} ${RVX_UTIL_HOME}/configure_template.py -i ./rvx_setup.sh.template -o ./rvx_setup.sh -c RVX_RELEASE_HOME=$(CURDIR)
+
+install: config
+	cd ./rvx_binary && make compiler
+	make local_setup
+
+customize::
+	@echo "Customization Complete"
+
+
+.PHONY: rvx_util_git rvx_ssw_git rvx_binary_git import_git_rvx_synthesizer import_git_rvx_devkit rvx_hwlib_git local_setup customize
+

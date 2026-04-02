@@ -1,0 +1,5 @@
+C_SRC += $(wildcard ${RVX_SSW_HOME}/npx/src/*.c)
+INCLUDES += -I${RVX_SSW_HOME}/npx/src
+C_SRC += $(wildcard ${RVX_SSW_HOME}/npx/src/sptk/*.c)
+INCLUDES += -I${RVX_SSW_HOME}/npx/src/sptk
+DEFINE_CFLAGS += -DUSE_NPX

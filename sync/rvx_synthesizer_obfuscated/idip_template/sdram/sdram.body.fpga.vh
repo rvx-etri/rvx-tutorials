@@ -1,0 +1,60 @@
+ERVP_SDRAM_CONTROLLER
+#(
+  .BW_ADDR(BW_ADDR),
+  .BW_AXI_TID(BW_AXI_TID)
+)
+i_controller
+(
+	.rstnn(rstnn),
+	.clk_cell(clk_cell),
+	.clk_axi(clk_axi),
+	.clk_apb(clk_apb),
+
+	.memory_rxawid(memory_rxawid),
+	.memory_rxawaddr(memory_rxawaddr),
+	.memory_rxawlen(memory_rxawlen),
+	.memory_rxawsize(memory_rxawsize),
+	.memory_rxawburst(memory_rxawburst),
+	.memory_rxawvalid(memory_rxawvalid),
+	.memory_rxawready(memory_rxawready),
+	.memory_rxwid(memory_rxwid),
+	.memory_rxwdata(memory_rxwdata),
+	.memory_rxwstrb(memory_rxwstrb),
+	.memory_rxwlast(memory_rxwlast),
+	.memory_rxwvalid(memory_rxwvalid),
+	.memory_rxwready(memory_rxwready),
+	.memory_rxbid(memory_rxbid),
+	.memory_rxbresp(memory_rxbresp),
+	.memory_rxbvalid(memory_rxbvalid),
+	.memory_rxbready(memory_rxbready),
+	.memory_rxarid(memory_rxarid),
+	.memory_rxaraddr(memory_rxaraddr),
+	.memory_rxarlen(memory_rxarlen),
+	.memory_rxarsize(memory_rxarsize),
+	.memory_rxarburst(memory_rxarburst),
+	.memory_rxarvalid(memory_rxarvalid),
+	.memory_rxarready(memory_rxarready),
+	.memory_rxrid(memory_rxrid),
+	.memory_rxrdata(memory_rxrdata),
+	.memory_rxrresp(memory_rxrresp),
+	.memory_rxrlast(memory_rxrlast),
+	.memory_rxrvalid(memory_rxrvalid),
+	.memory_rxrready(memory_rxrready),
+
+	.ctrl_rpsel(ctrl_rpsel),
+	.ctrl_rpenable(ctrl_rpenable),
+	.ctrl_rpaddr(ctrl_rpaddr),
+	.ctrl_rpwrite(ctrl_rpwrite),
+	.ctrl_rpwdata(ctrl_rpwdata),
+	.ctrl_rprdata(ctrl_rprdata),
+	.ctrl_rpready(ctrl_rpready),
+	.ctrl_rpslverr(ctrl_rpslverr),
+
+	.LPSDR_DQ_sod(LPSDR_DQ_sod),
+	.LPSDR_DQ_soval(LPSDR_DQ_soval),
+	.LPSDR_DQ_sival(LPSDR_DQ_sival),
+	.LPSDR_DQ_sod_byte(LPSDR_DQ_sod_byte),
+	.LPSDR_DQ_soe_byte(LPSDR_DQ_soe_byte)
+
+	`include "sdram_cell_port_mapping.vh"
+);

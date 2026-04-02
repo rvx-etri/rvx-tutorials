@@ -1,0 +1,52 @@
+<?xml version="1.0" ?>
+<rvx>
+	<def_interface>
+		<name>gpio_mmio</name>
+		<role>sender</role>
+		<def_parameter>
+			<name>bw_data</name>
+			<value>32</value>
+		</def_parameter>
+		<signal>
+			<name>wenable</name>
+			<width>1</width>
+			<port>output</port>
+    </signal>
+
+		<signal>
+			<name>wdata</name>
+			<width>bw_data</width>
+			<port>output</port>
+		</signal>
+
+		<signal>
+			<name>renable</name>
+			<width>1</width>
+			<port>output</port>
+		</signal>
+
+		<signal>
+			<name>rdata</name>
+			<width>bw_data</width>
+			<port>input</port>
+    </signal>
+
+    <signal>
+			<name>user_pinout</name>
+			<width>`BW_GPIO_VALUE</width>
+			<port>output</port>
+    </signal>
+
+    <signal>
+			<name>user_pinin</name>
+			<width>`BW_GPIO_VALUE</width>
+			<port>input</port>
+		</signal>
+
+		<signal>
+			<name>interrupt</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+	</def_interface>
+</rvx>

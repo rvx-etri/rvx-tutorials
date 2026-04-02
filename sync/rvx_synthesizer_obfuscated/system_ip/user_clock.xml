@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<rvx>
+	<dec_ip>
+		<name>user_clock</name>
+		<hdl_name>USER_IP</hdl_name>
+
+		<signal>
+			<name>clk_out</name>
+			<width>1</width>
+			<port>output</port>
+		</signal>
+
+		<user_dependent/>
+
+	</dec_ip>
+</rvx>

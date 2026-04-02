@@ -1,0 +1,3 @@
+*.gz
+rvx_hwlib*
+!rvx_hwlib.tar.gz

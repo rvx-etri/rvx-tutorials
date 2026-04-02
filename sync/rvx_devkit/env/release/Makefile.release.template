@@ -1,0 +1,222 @@
+## ****************************************************************************
+## ****************************************************************************
+## Copyright SoC Design Research Group, All rights reserved.
+## Electronics and Telecommunications Research Institute (ETRI)
+##
+## THESE DOCUMENTS CONTAIN CONFIDENTIAL INFORMATION AND KNOWLEDGE 
+## WHICH IS THE PROPERTY OF ETRI. NO PART OF THIS PUBLICATION IS 
+## TO BE USED FOR ANY OTHER PURPOSE, AND THESE ARE NOT TO BE 
+## REPRODUCED, COPIED, DISCLOSED, TRANSMITTED, STORED IN A RETRIEVAL 
+## SYSTEM OR TRANSLATED INTO ANY OTHER HUMAN OR COMPUTER LANGUAGE, 
+## IN ANY FORM, BY ANY MEANS, IN WHOLE OR IN PART, WITHOUT THE 
+## COMPLETE PRIOR WRITTEN PERMISSION OF ETRI.
+## ****************************************************************************
+## 2023-02-07
+## Kyuseung Han (han@etri.re.kr)
+## ****************************************************************************
+## ****************************************************************************
+
+## How to init GIT
+# source rvx_etri/rvx_setup.sh
+# make init
+# make config_python
+# edit "rvx_python_config.mh"
+# make check_python
+# make fork_git
+
+## How to config GIT
+# make config_python
+# edit "rvx_python_config.mh"
+# make check_python
+# make config
+# source ./rvx_setup.sh
+# make install
+
+ifndef RVX_UTIL_HOME
+	RVX_UTIL_HOME=./rvx_util
+endif
+
+TEMPLATE_FILE = ${RVX_ENV}/release/Makefile.release.template
+TEMPLATE_CONFIG = "${TEMPLATE_CONFIG}"
+include ${RVX_UTIL_HOME}/template_makefile.mh
+-include ${RVX_ENV}/makefile/rvx_home.mh
+
+RVX_ETRI_GIT_HOME = "${RVX_ETRI_GIT_HOME}"
+RVX_ETRI_SHARED_HOME = "${RVX_ETRI_SHARED_HOME}"
+RVX_ETRI_DEVKIT_HOME = "${RVX_ETRI_DEVKIT_HOME}"
+
+-include ./rvx_config.mh
+-include ./rvx_init.mh
+
+#################
+# RVX_SUBMODULE #
+#################
+
+RVX_SUBMODULE_PRIVATE_LIST=rvx_util rvx_ssw rvx_devkit
+RVX_SUBMODULE_PUBLIC_LIST=rvx_synthesizer_obfuscated rvx_binary rvx_platform_example
+-include ./rvx_init/rvx_submodule.mh
+
+########
+# init #
+########
+
+_check_etri_home:
+	$(if $(RVX_ETRI_HOME), , $(error RVX_ETRI_HOME is NOT defined))
+
+init: _check_etri_home
+	cp -f ${RVX_SHARED_HOME}/rvx_init/rvx_init.mh .
+	make update_rvx_init
+	cp -f ${RVX_ENV}/release/rvx_release.rvx_setup.sh.template ./rvx_setup.sh.template
+	cp -f ${RVX_ENV}/git/gitignore.rvx_release.txt ./.gitignore
+	@${PYTHON3_CMD} ${RVX_UTIL_HOME}/configure_template.py -i ${TEMPLATE_FILE} -c RVX_ETRI_GIT_HOME=$(RVX_ETRI_HOME) RVX_ETRI_DEVKIT_HOME=${RVX_DEVKIT_HOME} RVX_ETRI_SHARED_HOME=${RVX_SHARED_HOME} -o Makefile	
+
+########
+# fork #
+########
+
+VERSION_INFO_FILE=${CURDIR}/version_info.xml
+RVX_ETRI_SUBDIR_LIST = local_setup imp_class_info
+
+fork_git: distclean rvx_init_subgit fork_rvx_etri_subdir tip_hello
+	make init_rvx_submodule_private init_rvx_hwlib_basic fork_rvx_hwlib_special fork_rvx_hwlib_chip
+
+distclean: clean reset_subgit
+	rm -rf ${VERSION_INFO_FILE}
+
+reset_subgit:
+	rm -rf .gitmodules
+	rm -rf .git/modules
+	touch .gitmodules
+
+fork_rvx_hwlib_special:
+	-git rm -rf ./hwlib_special
+	rm -rf ./hwlib_special
+	${PYTHON3_CMD} ${RVX_ETRI_SHARED_HOME}/rvx_dev_util/export_git.py -name hwlib_special -git ${RVX_ETRI_GIT_HOME}/hwlib_special -o ${CURDIR}/hwlib_special -c ${VERSION_INFO_FILE}
+	cd ./hwlib_special && rm -rf pact paco
+	git add -A ./hwlib_special
+
+fork_rvx_hwlib_chip:
+	-git rm -rf ./hwlib_chip
+	rm -rf ./hwlib_chip
+	${PYTHON3_CMD} ${RVX_ETRI_SHARED_HOME}/rvx_dev_util/export_git.py -name hwlib_chip -git ${RVX_ETRI_GIT_HOME}/hwlib_chip -o ${CURDIR}/hwlib_chip -c ${VERSION_INFO_FILE}
+	git add -A ./hwlib_chip
+
+fork_rvx_etri_subdir: $(addprefix fork_rvx_etri_subdir., $(RVX_ETRI_SUBDIR_LIST))
+
+$(addprefix fork_rvx_etri_subdir., $(RVX_ETRI_SUBDIR_LIST)):fork_rvx_etri_subdir.%:
+	-rm -rf ./$(*)
+	-git rm -rf ./$(*)
+	cp -r ${RVX_ETRI_GIT_HOME}/$(*) .
+	-git add -f ./$(*)/Makefile
+	-git add -f ./$(*)/.gitignore
+	git add -A ./$(*)
+
+tip_hello:
+	mkdir -p ./platform
+	cd ./platform && cp -f ${RVX_ETRI_GIT_HOME}/platform/Makefile .
+	cd ./platform && rm -rf tip_hello
+	cd ./platform && cp -rf ${RVX_ETRI_GIT_HOME}/platform/tip_hello .
+
+PLATFORM_TEST_LIST=$(shell ${PYTHON3_CMD} ${RVX_UTIL_HOME}/os_util.py dir_list ${CURDIR}/platform_test)
+
+update_platform_test: $(addprefix update_platform_test., $(PLATFORM_TEST_LIST))
+
+$(addprefix update_platform_test., $(PLATFORM_TEST_LIST)):update_platform_test.%:
+	-@if [ -d ${RVX_ETRI_GIT_HOME}/platform_test/$(*) ] ;\
+	then \
+		cd ${CURDIR}/platform_test && rm -rf ./$(*) ;\
+		cp -r ${RVX_ETRI_GIT_HOME}/platform_test/$(*) ${CURDIR}/platform_test/ ;\
+	fi
+
+gitadd_platform_test: $(addprefix gitadd_platform_test., $(PLATFORM_TEST_LIST))
+
+$(addprefix gitadd_platform_test., $(PLATFORM_TEST_LIST)):gitadd_platform_test.%:
+	-@if [ -d ${RVX_ETRI_GIT_HOME}/platform_test/$(*) ] ;\
+	then \
+		cd ${CURDIR}/platform_test/$(*) && make clean ;\
+		cd ${CURDIR}/platform_test/$(*) && git add -A . ;\
+	fi
+
+##########
+# recent #
+##########
+
+recent: recent_subgit fork_rvx_hwlib_special fork_rvx_hwlib_chip
+	make config install
+	source ./rvx_setup.sh; cd ./platform && make engine_check
+	make update_platform_test gitadd_platform_test
+
+recent_subgit: update_rvx_submodule_private update_rvx_hwlib_basic
+
+#######
+# dev #
+#######
+
+TEST_SUBGIT_LIST = rvx_util rvx_ssw rvx_synthesizer_obfuscated rvx_platform_example
+
+test_git: test_subgit test_devkit test_hwlib_basic fork_rvx_hwlib_special fork_rvx_hwlib_chip fork_rvx_etri_subdir update_platform_test
+
+test_subgit: $(addprefix test_subgit., $(TEST_SUBGIT_LIST))
+
+$(addprefix test_subgit., $(TEST_SUBGIT_LIST)):test_subgit.%:
+	cd ./$(*) && rm -rf *
+	cp -r ${RVX_ETRI_SHARED_HOME}/$(*)/* ./$(*)/
+
+test_devkit:
+	cd ./rvx_devkit && rm -rf *
+	cp -r ${RVX_ETRI_DEVKIT_HOME}/* ./rvx_devkit
+
+test_hwlib_basic:
+	cd ./hwlib_basic && rm -rf *
+	cp -r ${RVX_ETRI_SHARED_HOME}/rvx_hwlib/* ./hwlib_basic
+
+freeze_hw:
+	find -name ".git" | xargs rm -rf
+	rm -rf ${CURDIR}/hwlib*
+	rm -rf ${CURDIR}/rvx_synthesizer*
+
+debug_hwlib:
+ifndef RVX_ETRI_GIT_HOME
+	$(error rerun make with specifying RVX_ETRI_GIT_HOME)
+endif
+	-@if [ -d ${RVX_ETRI_GIT_HOME}/hwlib_basic ] ;\
+	then \
+		rm -rf ./hwlib_basic ;\
+		cp -r ${RVX_ETRI_GIT_HOME}/hwlib_basic ./hwlib_basic ;\
+	fi
+
+release_hwlib:
+	-rm -rf ./hwlib_basic
+	git submodule init hwlib_basic
+	git submodule update hwlib_basic
+
+########
+# user #
+########
+
+clean: clean_config
+
+clean_config:
+	-rm -f .rvx_path_config .rvx_tool_config
+
+config: clean_config
+	-cd ./rvx_binary && make config
+	${PYTHON3_CMD} ${RVX_UTIL_HOME}/configure_template.py -i ./rvx_setup.sh.template -o ./rvx_setup.sh -c RVX_RELEASE_HOME=$(CURDIR)
+
+install: config
+	cd ./rvx_binary && make compiler
+	make local_setup
+
+patch:
+	git pull origin master
+	@make --no-print-directory _patch
+
+_patch:
+	make submodule_lfs
+	make config install
+	source ./rvx_setup.sh; cd ./platform && make engine_check
+
+retire:
+	make retire_rvx_submodule RVX_SUBMODULE=rvx_synthesizer_binary
+
+.PHONY: imp_class_info local_setup

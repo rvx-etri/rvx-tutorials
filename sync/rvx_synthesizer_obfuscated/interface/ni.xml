@@ -1,0 +1,77 @@
+<?xml version="1.0" ?>
+<rvx>
+	<def_interface>
+		<name>fni</name>
+		<role>sender</role>
+		<def_parameter>
+			<name>bw_phit</name>
+			<value>8</value>
+		</def_parameter>
+		<hdl_prefix>fni_</hdl_prefix>
+		<signal>
+			<name>link</name>
+			<width>`BW_FNI_LINK(bw_phit)</width>
+			<port>output</port>
+		</signal>
+		<signal>
+			<name>ready</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+	</def_interface>
+
+	<def_interface>
+		<name>bni</name>
+		<role>sender</role>
+		<def_parameter>
+			<name>bw_phit</name>
+			<value>8</value>
+		</def_parameter>
+		<hdl_prefix>bni_</hdl_prefix>
+		<signal>
+			<name>link</name>
+			<width>`BW_BNI_LINK(bw_phit)</width>
+			<port>output</port>
+		</signal>
+		<signal>
+			<name>ready</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+	</def_interface>
+
+	<def_interface>
+		<name>ni</name>
+		<role>sender</role>
+		<def_parameter>
+			<name>bw_fwn_phit</name>
+			<value>8</value>
+		</def_parameter>
+		<def_parameter>
+			<name>bw_bwn_phit</name>
+			<value>8</value>
+		</def_parameter>
+
+		<interface>
+			<name>fni</name>
+			<library_name>fni</library_name>
+			<role>sender</role>
+			<hdl_prefix></hdl_prefix>
+			<parameter>
+				<id>bw_phit</id>
+				<value>bw_fni_phit</value>
+			</parameter>
+		</interface>
+
+		<interface>
+			<name>bni</name>
+			<library_name>bni</library_name>
+			<role>receiver</role>
+			<hdl_prefix></hdl_prefix>
+			<parameter>
+				<id>bw_phit</id>
+				<value>bw_bni_phit</value>
+			</parameter>
+		</interface>
+	</def_interface>
+</rvx>

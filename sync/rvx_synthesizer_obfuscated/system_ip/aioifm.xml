@@ -1,0 +1,106 @@
+<?xml version="1.0" ?>
+<rvx>
+	<dec_ip>
+		<name>aioifm</name>
+		<hdl_name>ERVP_AIOIF</hdl_name>
+		<def_parameter>
+			<name>NUM_AIOIF</name>
+			<value>1</value>
+		</def_parameter>
+
+		<def_parameter>
+			<name>BW_DATA</name>
+			<value>8</value>
+		</def_parameter>
+
+		<signal>
+			<name>clk</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>gclk_system_external</comm_type>
+		</signal>
+
+		<signal>
+			<name>rstnn</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<reset_property>
+			<id>rstnn</id>
+			<type>asynch</type>
+			<type>negative</type>
+			<group>2</group>
+		</reset_property>
+
+		<core>
+			<sync>clk</sync>
+			<init>rstnn</init>
+		</core>
+
+		<signal>
+			<name>tick_gpio</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>tick_gpio</comm_type>
+		</signal>
+
+		<signal>
+			<name>aioif_type</name>
+			<width>`BW_AIOIF_TYPE</width>
+			<port>input</port>
+			<comm_type>aioif_type_list</comm_type>
+		</signal>
+
+		<interface>
+			<name>spi</name>
+			<library_name>spi</library_name>
+			<role>receiver</role>
+			<comm_type>spi</comm_type>
+			<sync>None</sync>
+			<init>None</init>
+		</interface>
+
+		<interface>
+			<name>uart</name>
+			<library_name>uart</library_name>
+			<role>receiver</role>
+			<comm_type>uart</comm_type>
+			<sync>None</sync>
+			<init>None</init>
+		</interface>
+
+		<interface>
+			<name>i2c</name>
+			<library_name>i2c</library_name>
+			<role>receiver</role>
+			<comm_type>i2c</comm_type>
+			<sync>None</sync>
+			<init>None</init>
+		</interface>
+
+		<interface>
+			<name>gpio</name>
+			<library_name>gpio_mmio</library_name>
+			<parameter>
+				<id>bw_data</id>
+				<value>BW_DATA</value>
+			</parameter>
+			<array>2</array>
+			<role>receiver</role>
+			<comm_type>gpio_mmio</comm_type>
+			<sync>clk</sync>
+			<init>rstnn</init>
+		</interface>
+
+		<interface>
+			<name>aioif</name>
+			<library_name>aioif</library_name>
+			<role>sender</role>
+			<comm_type>special</comm_type>
+			<sync>None</sync>
+			<init>None</init>
+		</interface>
+
+	</dec_ip>
+</rvx>

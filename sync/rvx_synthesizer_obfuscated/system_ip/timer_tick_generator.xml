@@ -1,0 +1,54 @@
+<?xml version="1.0" ?>
+<rvx>
+	<dec_ip>
+		<name>timer_tick_generator</name>
+		<hdl_name>ERVP_TICK_GENERATOR</hdl_name>
+
+		<signal>
+			<name>clk</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>gclk_local_access</comm_type>
+		</signal>
+
+		<signal>
+			<name>rstnn</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<reset_property>
+			<id>rstnn</id>
+			<type>asynch</type>
+			<type>negative</type>
+			<group>1</group>
+		</reset_property>
+
+		<core>
+			<sync>clk</sync>
+			<init>rstnn</init>
+		</core>
+
+		<signal>
+			<name>tick_config</name>
+			<width>11</width>
+			<port>input</port>
+			<comm_type>core_tick_config</comm_type>
+		</signal>
+
+		<signal>
+			<name>tick_1us</name>
+			<width>1</width>
+			<port>output</port>
+			<comm_type>tick_timer</comm_type>
+		</signal>
+
+		<signal>
+			<name>tick_62d5ms</name>
+			<width>1</width>
+			<port>output</port>
+			<comm_type>not_used</comm_type>
+		</signal>
+
+	</dec_ip>
+</rvx>

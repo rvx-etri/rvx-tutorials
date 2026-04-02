@@ -1,0 +1,86 @@
+<?xml version="1.0" ?>
+<rvx>
+	<dec_ip>
+		<name>apb_bus</name>
+		<hdl_name>ERVP_APB_BUS</hdl_name>
+		<def_parameter>
+			<name>NUM_DATA</name>
+			<value>1</value>
+		</def_parameter>
+		<def_parameter>
+			<name>BW_ADDR</name>
+			<value>1</value>
+		</def_parameter>
+		<def_parameter>
+			<name>BW_DATA</name>
+			<value>1</value>
+		</def_parameter>
+		<def_parameter>
+			<name>SEL_UPPER_INDEX</name>
+			<value>31</value>
+		</def_parameter>
+		<def_parameter>
+			<name>BW_SEL_INDEX</name>
+			<value>4</value>
+		</def_parameter>
+
+		<signal>
+			<name>clk</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>gclk_system</comm_type>
+		</signal>
+		<signal>
+			<name>rstnn</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<reset_property>
+			<id>rstnn</id>
+			<type>asynch</type>
+			<type>negative</type>
+		</reset_property>
+
+		<core>
+			<sync>clk</sync>
+			<init>rstnn</init>
+		</core>
+
+		<interface>
+			<name>no_name</name>
+			<library_name>apb</library_name>
+			<role>receiver</role>
+			<parameter>
+				<id>bw_addr</id>
+				<value>BW_ADDR</value>
+			</parameter>
+			<parameter>
+				<id>bw_data</id>
+				<value>BW_DATA</value>
+			</parameter>
+			<sync>clk</sync>
+			<init>rstnn</init>
+		</interface>
+		<interface>
+			<name>master</name>
+			<library_name>apb</library_name>
+			<role>sender</role>
+			<array>NUM_DATA</array>
+			<parameter>
+				<id>num_data</id>
+				<value>NUM_DATA</value>
+			</parameter>
+			<parameter>
+				<id>bw_addr</id>
+				<value>BW_ADDR</value>
+			</parameter>
+			<parameter>
+				<id>bw_data</id>
+				<value>BW_DATA</value>
+			</parameter>
+			<sync>clk</sync>
+			<init>rstnn</init>
+		</interface>
+	</dec_ip>
+</rvx>

@@ -1,0 +1,3 @@
+C_SRC += $(wildcard ${RVX_SSW_HOME}/api/paco/src/*.c)
+ASM_SRC += ${RVX_SSW_HOME}/api/paco/src/paco_util.S
+INCLUDES += -I${RVX_SSW_HOME}/api/paco/src

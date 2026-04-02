@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<rvx>
+	<dec_ip>
+		<name>user_gpio</name>
+		<hdl_name>USER_IP</hdl_name>
+
+		<interface>
+			<name>slave</name>
+			<hdl_prefix></hdl_prefix>
+			<library_name>tristate_od</library_name>
+			<role>receiver</role>
+			<comm_type>gpio</comm_type>
+			<sync>None</sync>
+			<init>None</init>
+		</interface>
+
+		<user_dependent/>
+
+	</dec_ip>
+</rvx>

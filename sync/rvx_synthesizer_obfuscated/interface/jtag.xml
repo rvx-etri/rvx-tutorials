@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<rvx>
+	<def_interface>
+		<name>jtag</name>
+		<role>receiver</role>
+		<signal>
+			<name>tck</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+		<signal>
+			<name>trstnn</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+		<signal>
+			<name>tms</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+		<signal>
+			<name>tdi</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+		<signal>
+			<name>tdo</name>
+			<width>1</width>
+			<port>output</port>
+		</signal>
+	</def_interface>
+</rvx>

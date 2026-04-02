@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<rvx>
+	<imp_class_list>
+		<imp_class>
+			<name>vp</name>
+			<display_name>Virtual Platform</display_name>
+			<type>vp</type>
+			<unique_instance>sim_vp</unique_instance>
+		</imp_class>
+		<imp_class>
+			<name>rtl</name>
+			<display_name>RTL</display_name>
+			<type>rtl</type>
+			<unique_instance>sim_rtl</unique_instance>
+		</imp_class>
+	</imp_class_list>
+</rvx>

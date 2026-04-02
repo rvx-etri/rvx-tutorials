@@ -1,0 +1,388 @@
+`include "ervp_global.vh"
+`include "pact_extended_config.vh"
+`include "pact_memorymap_offset.vh"
+
+module "${FULL_NODE_NAME}"
+(
+	clk,
+	rstnn,
+
+	rreg_sme_list,
+	rreg_smvalue_list,
+	wreg_rme_list,
+	wreg_rmvalue_list,
+
+	start,
+	finish,
+	subop,
+	operation_is_float,
+	immediate_value
+);
+
+////////////////
+/* DONT-TOUCH */
+////////////////
+
+// parameter input output
+
+localparam MATRIX_SIZE = `PACT_MATRIX_SIZE;
+
+localparam BW_EXPONENT = `PACT_BW_EXPONENT;
+localparam BW_SIGNIFICAND = `PACT_BW_SIGNIFICAND;
+localparam BW_INTEGER = `PACT_BW_INTEGER;
+localparam BW_USER_DATA = `PACT_BW_USER_DATA;
+
+localparam NUM_ELEMENT = MATRIX_SIZE*MATRIX_SIZE;
+localparam BW_PACT_ROW = `PACT_BW_SINGLE*MATRIX_SIZE;
+localparam BW_PACT_MATRIX = `PACT_BW_SINGLE*NUM_ELEMENT;
+
+localparam BW_MOVE_DATA = `PACT_NUM_MOVE_DATA*`PACT_BW_SINGLE;
+
+localparam NUM_BIPUT_REG = "${NUM_BIPUT_REG}";
+localparam NUM_INPUT_REG = "${NUM_INPUT_REG}";
+localparam NUM_OUTPUT_REG = "${NUM_OUTPUT_REG}";
+
+localparam NUM_READ_REG = NUM_BIPUT_REG + NUM_OUTPUT_REG;
+localparam NUM_WRITE_REG = NUM_BIPUT_REG + NUM_INPUT_REG;
+
+localparam BW_IMMEDIATE = 32;
+
+input wire clk, rstnn;
+
+input wire [NUM_READ_REG-1:0] rreg_sme_list;
+output wire [NUM_READ_REG*BW_MOVE_DATA-1:0] rreg_smvalue_list;
+input wire [NUM_WRITE_REG-1:0] wreg_rme_list;
+input wire [NUM_WRITE_REG*BW_MOVE_DATA-1:0] wreg_rmvalue_list;
+
+input wire start;
+output wire finish;
+input wire [`BW_PACT_SUBOP-1:0] subop;
+input wire operation_is_float;
+input wire [`BW_PACT_IMMEDIATE-1:0] immediate_value;
+
+// body
+
+genvar i, j, k;
+
+wire [BW_PACT_MATRIX-1:0] all_wdata_list2_zero [0:NUM_READ_REG-1];
+wire [BW_MOVE_DATA-1:0] wreg_rmvalue_list_zero [0:NUM_READ_REG-1];
+
+for(i=0; i<NUM_READ_REG; i=i+1)
+begin : i_gen_output_reg_wreg
+	assign wreg_rmvalue_list_zero[i] = 0;
+end
+
+for(i=0; i<NUM_READ_REG; i=i+1)
+begin : i_gen_read_reg_all_wdata
+	assign all_wdata_list2_zero[i] = 0;
+end
+
+// end of DONT-TOUCH
+
+///////////////
+/* registers */
+///////////////
+
+`ifdef PACT_INCLUDE_"${NODE_NAME}"_BIPUT_REG // DONT-TOUCH
+
+wire [BW_PACT_MATRIX-1:0] bmat_all_data_list2 [0:NUM_BIPUT_REG-1];
+wire [BW_PACT_ROW-1:0] bmat_up_data_list [0:NUM_BIPUT_REG-1];
+
+generate
+for(i=0; i<NUM_BIPUT_REG; i=i+1) // DONT-TOUCH
+begin : i_gen_biput_reg
+	PACT_MATRIX_REGISTER_TYPE2
+	#(
+		.BW_DATA(`PACT_BW_SINGLE), // DONT-TOUCH
+		.MATRIX_SIZE(MATRIX_SIZE), // DONT-TOUCH
+		.BW_MOVE_DATA(BW_MOVE_DATA), // DONT-TOUCH
+		.RESET_VALUE(0),
+		.INIT_VALUE(0)
+	)
+	i_template
+	(
+		.clk(clk), // DONT-TOUCH
+		.rstnn(rstnn), // DONT-TOUCH
+
+		.move_wenable(wreg_rme_list[i]), // DONT-TOUCH
+		.move_wdata_list(wreg_rmvalue_list[(i+1)*BW_MOVE_DATA-1-:BW_MOVE_DATA]), // DONT-TOUCH
+		.move_renable(rreg_sme_list[i]), // DONT-TOUCH
+		.move_rdata_list(rreg_smvalue_list[(i+1)*BW_MOVE_DATA-1-:BW_MOVE_DATA]), // DONT-TOUCH
+
+		.init(1'b 0),
+
+		.all_wenable(1'b 0),
+		.all_wdata_list2(all_wdata_list2_zero[i]),
+
+		.shift_up(1'b 0),
+		.shift_left(1'b 0),
+		.transpose(1'b 0),
+
+		.all_data_list2(bmat_all_data_list2[i]),
+		.up_data_list(bmat_up_data_list[i])
+	);
+end
+endgenerate
+
+`endif // PACT_INCLUDE_"${NODE_NAME}"_BIPUT_REG // DONT-TOUCH
+
+`ifdef PACT_INCLUDE_"${NODE_NAME}"_INPUT_REG // DONT-TOUCH
+
+wire [BW_PACT_MATRIX-1:0] imat_all_data_list2 [0:NUM_INPUT_REG-1];
+wire [BW_PACT_ROW-1:0] imat_up_data_list [0:NUM_INPUT_REG-1];
+
+generate
+for(i=0; i<NUM_INPUT_REG; i=i+1) // DONT-TOUCH
+begin : i_gen_input_reg
+	PACT_MATRIX_REGISTER_TYPE3
+	#(
+		.BW_DATA(`PACT_BW_SINGLE), // DONT-TOUCH
+		.MATRIX_SIZE(MATRIX_SIZE), // DONT-TOUCH
+		.BW_MOVE_DATA(BW_MOVE_DATA), // DONT-TOUCH
+		.RESET_VALUE(0)
+	)
+	i_template
+	(
+		.clk(clk), // DONT-TOUCH
+		.rstnn(rstnn), // DONT-TOUCH
+
+		.move_wenable(wreg_rme_list[(NUM_BIPUT_REG+i)]), // DONT-TOUCH
+		.move_wdata_list(wreg_rmvalue_list[((NUM_BIPUT_REG+i)+1)*BW_MOVE_DATA-1-:BW_MOVE_DATA]), // DONT-TOUCH
+		.move_renable(1'b 0), // DONT-TOUCH
+		.move_rdata_list(), // DONT-TOUCH
+
+		.shift_up(1'b 0),
+		.shift_left(1'b 0),
+		.transpose(1'b 0),
+
+		.all_data_list2(imat_all_data_list2[i]),
+		.up_data_list(imat_up_data_list[i])
+	);
+end
+endgenerate
+
+`endif // PACT_INCLUDE_"${NODE_NAME}"_INPUT_REG // DONT-TOUCH
+
+`ifdef PACT_INCLUDE_"${NODE_NAME}"_OUTPUT_REG // DONT-TOUCH
+
+wire [BW_PACT_MATRIX-1:0] omat_all_data_list2 [0:NUM_OUTPUT_REG-1];
+wire [BW_PACT_ROW-1:0] omat_up_data_list [0:NUM_OUTPUT_REG-1];
+
+generate
+for(i=0; i<NUM_OUTPUT_REG; i=i+1)
+begin : i_gen_output_reg
+	PACT_MATRIX_REGISTER_TYPE2
+	#(
+		.BW_DATA(`PACT_BW_SINGLE), // DONT-TOUCH
+		.MATRIX_SIZE(MATRIX_SIZE), // DONT-TOUCH
+		.BW_MOVE_DATA(BW_MOVE_DATA), // DONT-TOUCH
+		.RESET_VALUE(0),
+		.INIT_VALUE(0)
+	)
+	i_template
+	(
+		.clk(clk), // DONT-TOUCH
+		.rstnn(rstnn), // DONT-TOUCH
+
+		.move_wenable(1'b 0), // DONT-TOUCH
+		.move_wdata_list(wreg_rmvalue_list_zero[(NUM_BIPUT_REG+i)]), // DONT-TOUCH
+		.move_renable(rreg_sme_list[(NUM_BIPUT_REG+i)]), // DONT-TOUCH
+		.move_rdata_list(rreg_smvalue_list[((NUM_BIPUT_REG+i)+1)*BW_MOVE_DATA-1-:BW_MOVE_DATA]), // DONT-TOUCH
+		
+		.init(1'b 0),
+
+		.all_wenable(1'b 0),
+		.all_wdata_list2(all_wdata_list2_zero[(NUM_BIPUT_REG+i)]),
+
+		.shift_up(1'b 0),
+		.shift_left(1'b 0),
+		.transpose(1'b 0),
+
+		.all_data_list2(omat_all_data_list2[i]),
+		.up_data_list(omat_up_data_list[i])
+	);
+end
+endgenerate
+
+`endif // PACT_INCLUDE_"${NODE_NAME}"_OUTPUT_REG // DONT-TOUCH
+
+///////////
+/* sugar */
+///////////
+
+/* We provide the signals for matrix elements, which are defined below */
+/* You CAN erase the below part if not needed */
+
+`ifdef PACT_INCLUDE_"${NODE_NAME}"_BIPUT_REG
+
+wire [`PACT_BW_SINGLE-1:0] breg2d_from_all_data [0:NUM_BIPUT_REG-1][0:MATRIX_SIZE-1][0:MATRIX_SIZE-1];
+
+for(i=0; i<NUM_BIPUT_REG; i=i+1)
+begin : i_gen_breg2d_from_all_data_num
+	for(j=0; j<MATRIX_SIZE; j=j+1)
+	begin : i_gen_breg2d_from_all_data_row
+		for(k=0; k<MATRIX_SIZE; k=k+1)
+		begin : i_gen_breg2d_from_all_data_col
+			assign breg2d_from_all_data[i][j][k] = bmat_all_data_list2[i][(j*MATRIX_SIZE + k + 1)*`PACT_BW_SINGLE-1 -:`PACT_BW_SINGLE];
+		end
+	end
+end
+
+wire [`PACT_BW_SINGLE-1:0] breg1d_from_all_data [0:NUM_BIPUT_REG-1][0:NUM_ELEMENT-1];
+
+for(i=0; i<NUM_BIPUT_REG; i=i+1)
+begin : i_gen_breg1d_from_all_data_num
+	for(j=0; j<NUM_ELEMENT; j=j+1)
+	begin : i_gen_breg1d_from_all_data_row
+		assign breg1d_from_all_data[i][j] = bmat_all_data_list2[i][(j+1)*`PACT_BW_SINGLE-1 -:`PACT_BW_SINGLE];
+	end
+end
+
+wire [`PACT_BW_SINGLE-1:0] breg_from_up_data [0:NUM_BIPUT_REG-1][0:MATRIX_SIZE-1];
+
+for(i=0; i<NUM_BIPUT_REG; i=i+1)
+begin : i_gen_breg_from_up_data_num
+	for(k=0; k<MATRIX_SIZE; k=k+1)
+	begin : i_gen_breg_from_up_data_col
+		assign breg_from_up_data[i][k] = bmat_up_data_list[i][(k+1)*`PACT_BW_SINGLE-1 -:`PACT_BW_SINGLE];
+	end
+end
+
+`endif // PACT_INCLUDE_"${NODE_NAME}"_BIPUT_REG
+
+`ifdef PACT_INCLUDE_"${NODE_NAME}"_INPUT_REG
+
+wire [`PACT_BW_SINGLE-1:0] ireg2d_from_all_data [0:NUM_INPUT_REG-1][0:MATRIX_SIZE-1][0:MATRIX_SIZE-1];
+
+for(i=0; i<NUM_INPUT_REG; i=i+1)
+begin : i_gen_ireg2d_from_all_data_num
+	for(j=0; j<MATRIX_SIZE; j=j+1)
+	begin : i_gen_ireg2d_from_all_data_row
+		for(k=0; k<MATRIX_SIZE; k=k+1)
+		begin : i_gen_ireg2d_from_all_data_col
+			assign ireg2d_from_all_data[i][j][k] = imat_all_data_list2[i][(j*MATRIX_SIZE + k + 1)*`PACT_BW_SINGLE-1 -:`PACT_BW_SINGLE];
+		end
+	end
+end
+
+wire [`PACT_BW_SINGLE-1:0] ireg1d_from_all_data [0:NUM_INPUT_REG-1][0:NUM_ELEMENT-1];
+
+for(i=0; i<NUM_INPUT_REG; i=i+1)
+begin : i_gen_ireg1d_from_all_data_num
+	for(j=0; j<NUM_ELEMENT; j=j+1)
+	begin : i_gen_ireg1d_from_all_data_row
+		assign ireg1d_from_all_data[i][j] = imat_all_data_list2[i][(j+1)*`PACT_BW_SINGLE-1 -:`PACT_BW_SINGLE];
+	end
+end
+
+wire [`PACT_BW_SINGLE-1:0] ireg_from_up_data [0:NUM_INPUT_REG-1][0:MATRIX_SIZE-1];
+
+for(i=0; i<NUM_INPUT_REG; i=i+1)
+begin : i_gen_ireg_from_up_data_num
+	for(k=0; k<MATRIX_SIZE; k=k+1)
+	begin : i_gen_ireg_from_up_data_col
+		assign ireg_from_up_data[i][k] = imat_up_data_list[i][(k+1)*`PACT_BW_SINGLE-1 -:`PACT_BW_SINGLE];
+	end
+end
+
+`endif // PACT_INCLUDE_"${NODE_NAME}"_INPUT_REG
+
+`ifdef PACT_INCLUDE_"${NODE_NAME}"_OUTPUT_REG
+
+wire [`PACT_BW_SINGLE-1:0] oreg2d_from_all_data [0:NUM_OUTPUT_REG-1][0:MATRIX_SIZE-1][0:MATRIX_SIZE-1];
+
+for(i=0; i<NUM_OUTPUT_REG; i=i+1)
+begin : i_gen_oreg2d_from_all_data_num
+	for(j=0; j<MATRIX_SIZE; j=j+1)
+	begin : i_gen_oreg2d_from_all_data_row
+		for(k=0; k<MATRIX_SIZE; k=k+1)
+		begin : i_gen_oreg2d_from_all_data_col
+			assign oreg2d_from_all_data[i][j][k] = omat_all_data_list2[i][(j*MATRIX_SIZE + k + 1)*`PACT_BW_SINGLE-1 -:`PACT_BW_SINGLE];
+		end
+	end
+end
+
+wire [`PACT_BW_SINGLE-1:0] oreg1d_from_all_data [0:NUM_OUTPUT_REG-1][0:NUM_ELEMENT-1];
+
+for(i=0; i<NUM_OUTPUT_REG; i=i+1)
+begin : i_gen_oreg1d_from_all_data_num
+	for(j=0; j<NUM_ELEMENT; j=j+1)
+	begin : i_gen_oreg1d_from_all_data_row
+		assign oreg1d_from_all_data[i][j] = omat_all_data_list2[i][(j+1)*`PACT_BW_SINGLE-1 -:`PACT_BW_SINGLE];
+	end
+end
+
+wire [`PACT_BW_SINGLE-1:0] oreg_from_up_data [0:NUM_OUTPUT_REG-1][0:MATRIX_SIZE-1];
+
+for(i=0; i<NUM_OUTPUT_REG; i=i+1)
+begin : i_gen_oreg_from_up_data_num
+	for(k=0; k<MATRIX_SIZE; k=k+1)
+	begin : i_gen_oreg_from_up_data_col
+		assign oreg_from_up_data[i][k] = omat_up_data_list[i][(k+1)*`PACT_BW_SINGLE-1 -:`PACT_BW_SINGLE];
+	end
+end
+
+`endif // PACT_INCLUDE_"${NODE_NAME}"_OUTPUT_REG
+
+///////////////
+/* immediate */
+///////////////
+
+// immediate_value will be changed after the start
+// if you want to perform several operations with their own immediates in parallel,
+// MUST erase the 'immediate' section and,
+// write the code to store immediate_value into multiple registers.
+// if you do not user immediate,
+// then erase the 'immediate' section
+
+reg op_float;
+reg [BW_IMMEDIATE-1:0] immediate_value_stored;
+
+always@(posedge clk, negedge rstnn)
+begin
+	if(rstnn==0)
+	begin
+		op_float <= 0;
+		immediate_value_stored <= 0;
+	end
+	else if(start)
+	begin
+		op_float <= operation_is_float;
+		immediate_value_stored <= immediate_value;
+	end
+end
+
+/* DONT-TOUCH means that you MUST NOT modify the corresponding line */
+/* You CAN change the types of the registers */
+/* You CAN connect control signals except the move signals */
+/* If you change the numbers of matrix registers in XML, */
+/* 1) backup and erase this file 2) then, 'make syn' will generate this file newly */
+
+/* ADD USER FUNCTIONALITY TO THE BELOW   */
+
+/////////////
+/* signals */
+/////////////
+
+
+////////////
+/* logics */
+////////////
+
+//////////
+/* test */
+//////////
+
+// MUST erase the 'test' section before describing your own function
+always@(negedge clk)
+begin
+	if(rstnn)
+	begin
+		if(start)
+			$display(""${NODE_NAME}" starts with subop %x", subop);
+	end
+end
+
+assign finish = 0;
+
+endmodule

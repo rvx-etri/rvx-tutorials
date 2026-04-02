@@ -1,0 +1,3 @@
+*_synthesized.xml
+*_memorymap*.*
+*.v

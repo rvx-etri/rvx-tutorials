@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<rvx>
+	<def_interface>
+		<name>wifie</name>
+		<role>sender</role>
+		<signal>
+			<name>itr</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+		<signal>
+			<name>rstnn</name>
+			<width>1</width>
+			<port>output</port>
+		</signal>
+		<signal>
+			<name>wp</name>
+			<width>1</width>
+			<port>output</port>
+		</signal>
+		<signal>
+			<name>hibernate</name>
+			<width>1</width>
+			<port>output</port>
+		</signal>
+	</def_interface>
+</rvx>

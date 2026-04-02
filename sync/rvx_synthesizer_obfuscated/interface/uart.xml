@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<rvx>
+	<def_interface>
+		<name>uart</name>
+		<role>sender</role>
+		<signal>
+			<name>tx</name>
+			<width>1</width>
+			<port>output</port>
+		</signal>
+		<signal>
+			<name>rx</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+	</def_interface>
+</rvx>

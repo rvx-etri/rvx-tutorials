@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<rvx>
+	<def_interface>
+		<name>aioif</name>
+		<role>sender</role>
+		<tristate>
+			<name>dq</name>
+			<library_name>tristate_oe</library_name>
+			<parameter>
+				<id>bw_data</id>
+				<value>2</value>
+			</parameter>
+			<role>sender</role>
+		</tristate>
+	</def_interface>
+</rvx>

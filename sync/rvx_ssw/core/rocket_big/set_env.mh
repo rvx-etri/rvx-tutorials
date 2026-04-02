@@ -1,0 +1,23 @@
+ifndef RVX_COMPILER_SIFIVE
+CROSS_COMPILE = ${RVX_COMPILER_BASIC}
+RISCV_ARCH=rv32imafc
+RISCV_ABI=ilp32f
+else
+CROSS_COMPILE = ${RVX_COMPILER_SIFIVE}
+RISCV_ARCH=rv32imafc
+RISCV_ABI=ilp32f
+endif
+
+CFLAGS += -march=${RISCV_ARCH} -mabi=${RISCV_ABI}
+LD_FLAGS += -march=${RISCV_ARCH} -mabi=${RISCV_ABI}
+
+INCLUDES += -I${RVX_SSW_HOME}/core/rocket_big
+ASM_SRC += ${RVX_SSW_HOME}/core/rocket_big/start.S
+ifeq ($(USE_FREERTOS),true)
+	ASM_SRC += ${RVX_SSW_HOME}/core/rocket_big/portasm.S
+else
+	ASM_SRC += ${RVX_SSW_HOME}/core/rocket_big/entry.S
+endif
+C_SRC += ${RVX_SSW_HOME}/core/rocket_big/core_dependent.c
+
+include ${RVX_SSW_HOME}/riscv/riscv_compile.mh

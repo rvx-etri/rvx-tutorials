@@ -1,0 +1,9 @@
+remove_git_history:
+ifdef GIT_REMOTE_URL
+	rm -rf .git
+	git init
+	git add -A .
+	git commit -m "remove history"
+	git remote add origin ${GIT_REMOTE_URL}
+	git push -u --force origin master
+endif

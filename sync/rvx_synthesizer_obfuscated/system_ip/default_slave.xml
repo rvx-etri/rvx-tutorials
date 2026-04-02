@@ -1,0 +1,140 @@
+<?xml version="1.0" ?>
+<rvx>
+	<dec_ip>
+		<name>default_slave</name>
+		<hdl_name>MUNOC_DEFAULT_SNIM</hdl_name>
+
+		<def_parameter>
+			<name>NODE_ID</name>
+			<value>-1</value>
+		</def_parameter>
+		<def_parameter>
+			<name>BW_FNI_PHIT</name>
+			<value>8</value>
+		</def_parameter>
+		<def_parameter>
+			<name>BW_BNI_PHIT</name>
+			<value>8</value>
+		</def_parameter>
+		<def_parameter>
+			<name>BW_PLATFORM_ADDR</name>
+			<value>32</value>
+		</def_parameter>
+
+		<def_parameter>
+			<name>USE_JTAG_INTERFACE</name>
+			<value>0</value>
+		</def_parameter>
+		<def_parameter>
+			<name>USE_SW_INTERFACE</name>
+			<value>0</value>
+		</def_parameter>
+		<def_parameter>
+			<name>NOC_CONTROLLER_BASEADDR</name>
+			<value>0</value>
+		</def_parameter>
+
+		<signal>
+			<name>clk_network</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>clk_network</comm_type>
+		</signal>
+
+		<signal>
+			<name>rstnn_network</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<reset_property>
+			<id>rstnn_network</id>
+			<type>asynch</type>
+			<type>negative</type>
+			<group>1</group>
+		</reset_property>
+
+		<signal>
+			<name>clk_debug</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>gclk_system_debug</comm_type>
+		</signal>
+			
+		<signal>
+			<name>rstnn_debug</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<reset_property>
+			<id>rstnn_debug</id>
+			<type>asynch</type>
+			<type>negative</type>
+			<group>1</group>
+		</reset_property>
+
+		<signal>
+			<name>comm_disable</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>not_used</comm_type>
+		</signal>
+
+		<core>
+			<sync>clk_debug</sync>
+			<init>rstnn_debug</init>
+		</core>
+
+		<interface>
+			<name>ni</name>
+			<library_name>ni</library_name>
+			<role>receiver</role>
+			<hdl_prefix></hdl_prefix>
+			<comm_type>memory:all</comm_type>
+			<memorymap>
+				<size>0x1000</size>
+			</memorymap>
+			<parameter>
+				<id>bw_fni_phit</id>
+				<value>BW_FNI_PHIT</value>
+			</parameter>
+			<parameter>
+				<id>bw_data</id>
+				<value>32</value>
+			</parameter>
+			<parameter>
+				<id>bw_bni_phit</id>
+				<value>BW_BNI_PHIT</value>
+			</parameter>
+			<sync>clk_network</sync>
+			<init>rstnn_network</init>
+		</interface>
+
+		<interface>
+			<name>debug</name>
+			<library_name>apb</library_name>
+			<role>receiver</role>
+			<comm_type>noc_debug</comm_type>
+			<parameter>
+				<id>bw_addr</id>
+				<value>BW_PLATFORM_ADDR</value>
+			</parameter>
+			<parameter>
+				<id>bw_data</id>
+				<value>32</value>
+			</parameter>
+			<sync>clk_debug</sync>
+			<init>rstnn_debug</init>
+		</interface>
+		
+		<interface>
+			<name>svri</name>
+			<library_name>svri</library_name>
+			<role>both</role>
+			<comm_type>supervision</comm_type>
+			<sync>None</sync>
+			<init>None</init>
+		</interface>
+	</dec_ip>
+</rvx>

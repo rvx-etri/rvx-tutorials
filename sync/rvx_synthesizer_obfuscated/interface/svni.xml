@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<rvx>
+	<def_interface>
+		<name>svri_single</name>
+		<role>sender</role>
+		<signal>
+			<name>link</name>
+			<width>`BW_SVRING_LINK</width>
+			<port>output</port>
+		</signal>
+		<signal>
+			<name>ack</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+	</def_interface>
+
+	<def_interface>
+		<name>svri</name>
+		<role>both</role>
+
+		<interface>
+			<name>i_receiver</name>
+			<hdl_prefix>r</hdl_prefix>
+			<library_name>svri_single</library_name>
+			<role>receiver</role>
+		</interface>
+		<interface>
+			<name>i_sender</name>
+			<hdl_prefix>s</hdl_prefix>
+			<library_name>svri_single</library_name>
+			<role>sender</role>
+		</interface>
+	</def_interface>
+</rvx>

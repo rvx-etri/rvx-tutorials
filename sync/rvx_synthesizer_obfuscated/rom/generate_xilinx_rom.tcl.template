@@ -1,0 +1,17 @@
+set COE_FILE [file normalize "${COE_FILE}"]
+
+if {[file exist ./xci/"${MODULE_NAME}"/"${MODULE_NAME}".xci]==0} {
+  create_ip -name dist_mem_gen -vendor xilinx.com -library ip -version 8.0 -module_name "${MODULE_NAME}" -dir ./xci
+  set_property CONFIG.depth {"${CELL_DEPTH}"} [get_ips "${MODULE_NAME}"]
+  set_property CONFIG.data_width {"${CELL_WIDTH}"} [get_ips "${MODULE_NAME}"]
+  set_property CONFIG.memory_type {rom} [get_ips "${MODULE_NAME}"]
+  set_property CONFIG.output_options {registered} [get_ips "${MODULE_NAME}"]
+  set_property CONFIG.coefficient_file ${COE_FILE} [get_ips "${MODULE_NAME}"]
+} else {
+	read_ip ./xci/"${MODULE_NAME}"/"${MODULE_NAME}".xci
+}
+if {[file exist ./xci/"${MODULE_NAME}"/"${MODULE_NAME}"_stub.v]==0} {
+	synth_ip -quiet ./xci/"${MODULE_NAME}"/"${MODULE_NAME}".xci
+} else {
+	read_verilog ./xci/"${MODULE_NAME}"/"${MODULE_NAME}"_stub.v
+}

@@ -1,0 +1,72 @@
+<?xml version="1.0" ?>
+<rvx>
+	<dec_ip>
+		<name>tristate_buffer_oe</name>
+		<hdl_name>TRISTATE_BUFFER_OE</hdl_name>
+		<def_parameter>
+			<name>BW_DATA</name>
+			<value>1</value>
+		</def_parameter>
+		<def_parameter>
+			<name>NUM_DATA</name>
+			<value>1</value>
+		</def_parameter>
+
+		<imp_dependent/>
+
+		<interface>
+			<name>receiver</name>
+			<library_name>tristate_oe</library_name>
+			<parameter>
+				<id>bw_data</id>
+				<value>BW_DATA</value>
+			</parameter>
+			<hdl_prefix></hdl_prefix>
+			<role>receiver</role>
+			<sync>None</sync>
+			<init>None</init>
+			<array>NUM_DATA</array>
+		</interface>
+		<signal>
+			<name>inout_port</name>
+			<width>BW_DATA</width>
+			<port>inout</port>
+			<array>NUM_DATA</array>
+		</signal>
+	</dec_ip>
+
+	<dec_ip>
+		<name>tristate_buffer_od</name>
+		<hdl_name>TRISTATE_BUFFER_OD</hdl_name>
+		<def_parameter>
+			<name>BW_DATA</name>
+			<value>1</value>
+		</def_parameter>
+		<def_parameter>
+			<name>NUM_DATA</name>
+			<value>1</value>
+		</def_parameter>
+
+		<imp_dependent/>
+
+		<interface>
+			<name>receiver</name>
+			<library_name>tristate_od</library_name>
+			<parameter>
+				<id>bw_data</id>
+				<value>BW_DATA</value>
+			</parameter>
+			<hdl_prefix></hdl_prefix>
+			<role>receiver</role>
+			<sync>None</sync>
+			<init>None</init>
+			<array>NUM_DATA</array>
+		</interface>
+		<signal>
+			<name>inout_port</name>
+			<width>BW_DATA</width>
+			<port>inout</port>
+			<array>NUM_DATA</array>
+		</signal>
+	</dec_ip>
+</rvx>

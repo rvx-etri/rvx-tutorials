@@ -1,0 +1,124 @@
+<?xml version="1.0" ?>
+<rvx>
+	<dec_ip>
+		<name>mni_ahbm_asynch</name>
+		<hdl_name>MUNOC_AHB_MASTER_NETWORK_INTERFACE_MODULE_ASYNCH</hdl_name>
+		<def_parameter>
+			<name>NAME</name>
+			<value>""</value>
+		</def_parameter>
+		<def_parameter>
+			<name>NODE_ID</name>
+			<value>-1</value>
+		</def_parameter>
+		<def_parameter>
+			<name>BW_FNI_PHIT</name>
+			<value>8</value>
+		</def_parameter>
+		<def_parameter>
+			<name>BW_BNI_PHIT</name>
+			<value>8</value>
+		</def_parameter>
+		<def_parameter>
+			<name>BW_PLATFORM_ADDR</name>
+			<value>32</value>
+		</def_parameter>
+		<def_parameter>
+			<name>BW_NODE_DATA</name>
+			<value>32</value>
+		</def_parameter>
+
+		<signal>
+			<name>clk_network</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+		
+		<signal>
+			<name>rstnn_network</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<reset_property>
+			<id>rstnn_network</id>
+			<type>asynch</type>
+			<type>negative</type>
+		</reset_property>
+
+		<signal>
+			<name>clk_master</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+		
+		<signal>
+			<name>rstnn_master</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<reset_property>
+			<id>rstnn_master</id>
+			<type>asynch</type>
+			<type>negative</type>
+		</reset_property>
+
+		<core>
+			<sync>clk_network</sync>
+			<init>rstnn_network</init>
+		</core>
+
+		<signal>
+			<name>comm_disable</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>not_used</comm_type>
+		</signal>
+
+		<interface>
+			<name>ipif</name>
+			<library_name>ahbm</library_name>
+			<role>receiver</role>
+			<comm_type>special</comm_type>
+			<hdl_prefix></hdl_prefix>
+			<sync>clk_master</sync>
+			<init>rstnn_master</init>
+			<parameter>
+				<id>bw_addr</id>
+				<value>BW_PLATFORM_ADDR</value>
+			</parameter>
+			<parameter>
+				<id>bw_data</id>
+				<value>BW_NODE_DATA</value>
+			</parameter>
+		</interface>
+
+		<interface>
+			<name>ni</name>
+			<library_name>ni</library_name>
+			<role>sender</role>
+			<comm_type>special</comm_type>
+			<hdl_prefix></hdl_prefix>
+			<parameter>
+				<id>bw_fni_phit</id>
+				<value>BW_FNI_PHIT</value>
+			</parameter>
+			<parameter>
+				<id>bw_bni_phit</id>
+				<value>BW_BNI_PHIT</value>
+			</parameter>
+			<sync>clk_network</sync>
+			<init>rstnn_network</init>
+		</interface>
+
+		<interface>
+			<name>svri</name>
+			<library_name>svri</library_name>
+			<role>both</role>
+			<comm_type>supervision</comm_type>
+			<sync>None</sync>
+			<init>None</init>
+		</interface>
+	</dec_ip>
+</rvx>

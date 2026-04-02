@@ -1,0 +1,5 @@
+source ./set_ocd_env.tcl
+
+set dump_type_file "${TYPE_FILE}"
+set dump_data_file "${DATA_FILE}"
+dump_memory_using_gpr $dump_type_file $dump_data_file

@@ -1,0 +1,75 @@
+# This file is included by multiple mh files
+
+APP_NAME ?= None
+BUILD_MODE ?= debug
+
+ENGINE_TARGET=sim_rtl
+ENGINE_USER_CMD_LIST=compile_test compile_test_all compile_check app_list view verify_apps run_verify
+ENGINE_USER_CMD_ADV_LIST=
+ENGINE_SYSTEM_CMD_LIST=build after_build clean_build script compile_rtl_normal compile_rtl_debug compile_rtl_debug_init run_rtl debug_rtl run debug debug_view debug_init path
+ENGINE_PARA= -p ${PLATFORM_NAME} -a ${APP_NAME} -tic ${TARGET_IMP_CLASS} -bm ${BUILD_MODE} -imp_dir ${CURDIR}
+APP_LIST = $(shell ${PYTHON3_CMD} ${RVX_UTIL_HOME}/os_util.py dir_list ${ENGINE_WS}/${PLATFORM_NAME}/app )
+RUN_APP_CMD_LIST=build rebuild clean all reall debug redebug debug_init edit
+include ${RVX_ENV}/engine/rvx_make2engine.mh
+
+## BUILD ##
+
+$(addsuffix .build, ${APP_LIST}):%.build:
+	@make --no-print-directory build APP_NAME=$(*) BUILD_MODE=${BUILD_MODE}
+
+$(addsuffix .after_build, ${APP_LIST}):%.after_build:
+	@make --no-print-directory after_build APP_NAME=$(*) BUILD_MODE=${BUILD_MODE}
+
+$(addsuffix .clean, ${APP_LIST}):%.clean:
+	@make --no-print-directory clean_build APP_NAME=$(*) BUILD_MODE=${BUILD_MODE}
+
+$(addsuffix .rebuild, ${APP_LIST}):%.rebuild: %.clean %.build
+
+## SIM ##
+
+$(addsuffix .sim, ${APP_LIST}):%.sim:
+	@make --no-print-directory run APP_NAME=$(*) BUILD_MODE=${BUILD_MODE}
+
+$(addsuffix .resim, ${APP_LIST}):%.resim: %.clean %.sim
+
+$(addsuffix .debug, ${APP_LIST}):%.debug: clean %.clean %.debug_hw
+
+$(addsuffix .debug_hw, ${APP_LIST}):%.debug_hw:
+	@make --no-print-directory debug APP_NAME=$(*) BUILD_MODE=${BUILD_MODE}
+
+$(addsuffix .verify, ${APP_LIST}):%.verify:
+	@make --no-print-directory run_verify APP_NAME=$(*) BUILD_MODE=$(BUILD_MODE)
+
+## MISC ##
+
+$(addsuffix .debug_init, ${APP_LIST}):%.debug_init: clean %.clean
+	@make --no-print-directory debug_init APP_NAME=$(*) BUILD_MODE=${BUILD_MODE}
+
+$(addsuffix .debug_view, ${APP_LIST}):%.debug_view: clean %.clean
+	@make --no-print-directory debug_view APP_NAME=$(*) BUILD_MODE=${BUILD_MODE}
+
+$(addsuffix .debug_sw, ${APP_LIST}):%.debug_sw: %.clean %.debug
+
+${APP_LIST}:%: %.sim
+
+$(addsuffix .all, ${APP_LIST}):%.all: clean %.resim
+
+$(addsuffix .import_run, ${APP_LIST}):%.import_run:
+	@cd ${PLATFORM_DIR}/app && make --no-print-directory $(*).import_app
+	@make --no-print-directory $(*).sim BUILD_MODE=${BUILD_MODE}
+
+$(addsuffix .edit, ${APP_LIST}):%.edit:
+	@cd ${PLATFORM_DIR}/app/$(*)/src && vim main.c
+
+## VERIFY ##
+
+VERIFY_APP_LIST = $(filter verify_%,$(APP_LIST))
+
+verify_app_print:
+	@echo ${VERIFY_APP_LIST}
+
+verify.build: verify_app_print $(addsuffix .build, ${VERIFY_APP_LIST})
+
+verify.all: verify_app_print $(addsuffix .all, ${VERIFY_APP_LIST})
+
+clean: distclean

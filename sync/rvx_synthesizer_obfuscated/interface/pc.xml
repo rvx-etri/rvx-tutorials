@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<rvx>
+	<def_interface>
+		<name>pc</name>
+		<role>sender</role>
+		<hdl_prefix></hdl_prefix>
+		<signal>
+			<name>pc</name>
+			<width>32</width>
+			<port>output</port>
+		</signal>
+		<signal>
+			<name>inst</name>
+			<width>32</width>
+			<port>output</port>
+		</signal>
+	</def_interface>
+</rvx>

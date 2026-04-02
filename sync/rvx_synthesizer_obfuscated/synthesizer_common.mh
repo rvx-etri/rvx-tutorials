@@ -1,0 +1,51 @@
+LIBRARY_LIST = ./rvx_env.xml ./system_ip ./general_ip ./interface ./linker_template ./simulator_template ./idip_template ./mmio_template ./pact ./rom
+PYTHON_SOURCE_LIST  = ./rvx_re_util.py ./rvx_util.py ./verilog_generator.py ./c_generator.py ./tcl_generator.py ./configure_template.py ./xml_util.py ./generate_copyright.py
+PYTHON_SOURCE_LIST += ./xml_converter.py ./generate_sw_env.py ./generate_rtl_sim_env.py ./generate_rtl_syn_env.py ./generate_rtl_sim_module.py ./generate_module.py ./synthesize_mmio.py ./generate_pact_component.py ./synthesize_rom.py ./generate_ip_instance_info.py
+
+-include ../rvx_python_config.mh
+
+_convert_xml:
+	@${PYTHON3_CMD} xml_converter.py -xml ${INPUT_XML} -l ${LANGAUGE_TYPE} -o ${OUTPUT_DIR}
+
+gen_sw_env:
+	@${PYTHON3_CMD} generate_sw_env.py -p ${PLATFORM_DIR} -t ./linker_template -i ${INCLUDE_LIST} -o ${OUTPUT_DIR}
+
+gen_rtl_sim_env:
+	@${PYTHON3_CMD} generate_rtl_sim_env.py -i ${INCLUDE_LIST} -o ${OUTPUT_DIR}
+
+gen_rtl_syn_env:
+	@${PYTHON3_CMD} generate_rtl_syn_env.py -i ${INCLUDE_LIST} -o ${OUTPUT_DIR}
+
+gen_rtl_sim_module:
+	@${PYTHON3_CMD} generate_rtl_sim_module.py -t ./simulator_template -top ${TOP_XML} -info ${INCLUDE_LIST} -o ${OUTPUT_DIR}
+
+gen_module:
+	@${PYTHON3_CMD} generate_module.py -xml ${INPUT_XML} -t ./idip_template -it ${IMP_TYPE} -tic ${TARGET_IMP_CLASS} -o ${OUTPUT_DIR}
+
+gen_ip_instance_info:
+	@${PYTHON3_CMD} generate_ip_instance_info.py -i ${INPUT_XML} -o ${OUTPUT_DIR}
+
+gen_mmio:
+	@${PYTHON3_CMD} synthesize_mmio.py -i ${INPUT_XML} -o ${OUTPUT_DIR} -op ${OPERATION}
+
+gen_info: _convert_xml
+
+gen_mmio_full:
+	make gen_mmio INPUT_XML=${INPUT_XML} OUTPUT_DIR=${OUTPUT_DIR} OPERATION=s
+	make gen_mmio INPUT_XML=${OUTPUT_DIR}/${MMIO_NAME}_synthesized.xml OUTPUT_DIR=${OUTPUT_DIR} OPERATION=vdm
+	make _convert_xml INPUT_XML=${OUTPUT_DIR}/${MMIO_NAME}_memorymap_offset.xml LANGAUGE_TYPE=vc OUTPUT_DIR=${OUTPUT_DIR}
+	@${PYTHON3_CMD} ${RVX_UTIL_HOME}/configure_template.py -i ${OUTPUT_DIR}/${MMIO_NAME}.v -o ${OUTPUT_DIR}/${MMIO_NAME}_mmio.v  -c MODULE_NAME=$(shell echo ${MMIO_NAME} | tr a-z A-Z)_MMIO MEMORYMAP_OFFSET_FILE=${MMIO_NAME}_memorymap_offset.vh
+	make _convert_xml INPUT_XML=${OUTPUT_DIR}/${MMIO_NAME}_memorymap.xml LANGAUGE_TYPE=c OUTPUT_DIR=${OUTPUT_DIR}
+	@${PYTHON3_CMD} ${RVX_UTIL_HOME}/configure_template.py -i ${OUTPUT_DIR}/${MMIO_NAME}_memorymap.h -o ${OUTPUT_DIR}/${MMIO_NAME}_memorymap.h -c MODULE_BASEADDR=${BASEADDR}
+
+member_mmio:
+	make gen_mmio_full MMIO_NAME=${MMIO_NAME} INPUT_XML=${INPUT_XML} OUTPUT_DIR=${OUTPUT_DIR} BASEADDR=${BASEADDR}
+
+gen_rom:
+	@${PYTHON3_CMD} synthesize_rom.py -n ${ROM_NAME} -t ${ROM_TYPE} -a ${AXI_WIDTH} -c ${CELL_WIDTH} -i ${INPUT_FILE} -o ${OUTPUT_DIR}
+
+gen_adc:
+	@${PYTHON3_CMD} generate_adc.py -i ${ADC_XML_LIST} -c ${COMPONENT} -o ${OUTPUT_DIR}
+
+generate_pact_component:
+	@${PYTHON3_CMD} generate_pact_component.py -op ${OP} -xml ${INPUT_XML} -t ./pact -o ${OUTPUT_DIR}

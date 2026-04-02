@@ -1,0 +1,7 @@
+ifndef __MATRIX_ENV__
+__MATRIX_ENV__=
+
+C_SRC += $(wildcard ${RVX_SSW_HOME}/matrix/src/*.c)
+INCLUDES += -I${RVX_SSW_HOME}/matrix/src
+
+endif

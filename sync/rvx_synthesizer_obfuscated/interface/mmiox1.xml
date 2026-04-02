@@ -1,0 +1,158 @@
+<?xml version="1.0" ?>
+<rvx>
+  <def_interface>
+    <name>mmiox1</name>
+    <hdl_prefix>mx_</hdl_prefix>
+    <role>sender</role>
+
+    <def_parameter>
+      <name>bw_config</name>
+      <value>32</value>
+    </def_parameter>
+    <def_parameter>
+      <name>bw_status</name>
+      <value>32</value>
+    </def_parameter>
+    <def_parameter>
+      <name>bw_log</name>
+      <value>32</value>
+    </def_parameter>
+
+    <def_parameter>
+      <name>bw_inst</name>
+      <value>64</value>
+    </def_parameter>
+    <def_parameter>
+      <name>bw_input</name>
+      <value>32</value>
+    </def_parameter>
+    <def_parameter>
+      <name>bw_output</name>
+      <value>32</value>
+    </def_parameter>
+
+    <def_parameter>
+      <name>config_default_value</name>
+      <value>0</value>
+    </def_parameter>
+    <def_parameter>
+      <name>log_fifo_depth</name>
+      <value>4</value>
+    </def_parameter>
+    <def_parameter>
+      <name>inst_fifo_depth</name>
+      <value>4</value>
+    </def_parameter>
+    <def_parameter>
+      <name>input_fifo_depth</name>
+      <value>4</value>
+    </def_parameter>
+    <def_parameter>
+      <name>output_fifo_depth</name>
+      <value>4</value>
+    </def_parameter>
+
+    <signal>
+      <name>core_config</name>
+      <width>bw_config</width>
+      <port>output</port>
+    </signal>
+
+    <signal>
+      <name>core_status</name>
+      <width>bw_status</width>
+      <port>input</port>
+    </signal>
+
+    <signal>
+      <name>clear_request</name>
+      <width>1</width>
+      <port>output</port>
+    </signal>
+
+    <signal>
+      <name>clear_finish</name>
+      <width>1</width>
+      <port>input</port>
+    </signal>
+
+    <signal>
+      <name>log_fifo_wready</name>
+      <width>1</width>
+      <port>output</port>
+    </signal>
+
+    <signal>
+      <name>log_fifo_wrequest</name>
+      <width>1</width>
+      <port>input</port>
+    </signal>
+
+    <signal>
+      <name>log_fifo_wdata</name>
+      <width>bw_log</width>
+      <port>input</port>
+    </signal>
+
+    <signal>
+      <name>inst_fifo_rready</name>
+      <width>1</width>
+      <port>output</port>
+    </signal>
+
+    <signal>
+      <name>inst_fifo_rdata</name>
+      <width>bw_inst</width>
+      <port>output</port>
+    </signal>
+
+    <signal>
+      <name>inst_fifo_rrequest</name>
+      <width>1</width>
+      <port>input</port>
+    </signal>
+
+    <signal>
+      <name>operation_finish</name>
+      <width>1</width>
+      <port>input</port>
+    </signal>
+
+    <signal>
+      <name>input_fifo_rready</name>
+      <width>1</width>
+      <port>output</port>
+    </signal>
+
+    <signal>
+      <name>input_fifo_rdata</name>
+      <width>bw_input</width>
+      <port>output</port>
+    </signal>
+
+    <signal>
+      <name>input_fifo_rrequest</name>
+      <width>1</width>
+      <port>input</port>
+    </signal>
+
+    <signal>
+      <name>output_fifo_wready</name>
+      <width>1</width>
+      <port>output</port>
+    </signal>
+
+    <signal>
+      <name>output_fifo_wrequest</name>
+      <width>1</width>
+      <port>input</port>
+    </signal>
+
+    <signal>
+      <name>output_fifo_wdata</name>
+      <width>bw_output</width>
+      <port>input</port>
+    </signal>
+
+  </def_interface>
+</rvx>

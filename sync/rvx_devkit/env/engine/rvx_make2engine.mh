@@ -1,0 +1,136 @@
+##########
+# engine #
+##########
+
+ifndef ENGINE_WS
+$(error define ENGINE_WS)
+endif
+
+ifndef ENGINE_TARGET
+$(error define ENGINE_TARGET)
+endif
+
+ifndef ENGINE_USER_CMD_LIST
+ifndef ENGINE_CMD_LIST
+$(error define ENGINE_USER_CMD_LIST)
+endif
+endif
+
+ifndef ENGINE_LOG_DIR
+ENGINE_LOG_DIR = .
+endif
+
+ifndef BY_GUI
+BY_GUI = false
+endif
+
+ifdef ENGINE_CMD_LIST
+ENGINE_USER_CMD_LIST = ${ENGINE_CMD_LIST}
+endif
+ifdef RUN_APP_CMD_LIST
+ENGINE_USER_CMD_LIST+= run_gui
+endif
+ENGINE_USER_CMD_LIST+= gitadd gitadd_rc
+
+ifndef ENGINE_USER_CMD_ADV_LIST
+ENGINE_USER_CMD_ADV_LIST =
+endif
+ENGINE_USER_CMD_ADV_LIST+= rvx_each
+
+ENGINE_USER_CMD_ALL_LIST = ${ENGINE_USER_CMD_LIST}
+ENGINE_USER_CMD_ALL_LIST+= ${ENGINE_USER_CMD_ADV_LIST}
+
+ifndef ENGINE_SYSTEM_CMD_LIST
+ENGINE_SYSTEM_CMD_LIST =
+endif
+ENGINE_SYSTEM_CMD_LIST+= engine_check server_log gitignore
+ENGINE_SYSTEM_CMD_LIST+= $(addsuffix .request, ${ENGINE_USER_CMD_LIST})
+ENGINE_SYSTEM_CMD_LIST+= $(addsuffix .check, ${ENGINE_USER_CMD_LIST})
+ENGINE_SYSTEM_CMD_LIST+= $(addsuffix .finalize, ${ENGINE_USER_CMD_LIST})
+
+ENGINE_ALL_CMD_LIST = ${ENGINE_USER_CMD_ALL_LIST}
+ENGINE_ALL_CMD_LIST+= ${ENGINE_SYSTEM_CMD_LIST}
+
+#ENGINE_EXTENDED_CMD_LIST = $(addprefix ${ENGINE_TARGET}., ${ENGINE_ALL_CMD_LIST})
+
+${ENGINE_ALL_CMD_LIST}:
+ifeq (${BY_GUI},true)
+	@${PYTHON3_CMD} ${RVX_ENV}/engine/rvx_unified_engine.py -ws ${ENGINE_WS} -cmd ${ENGINE_TARGET}.$@ ${ENGINE_PARA} -log ${ENGINE_LOG_DIR} --gui
+else
+	@${PYTHON3_CMD} ${RVX_ENV}/engine/rvx_unified_engine.py -ws ${ENGINE_WS} -cmd ${ENGINE_TARGET}.$@ ${ENGINE_PARA} -log ${ENGINE_LOG_DIR}
+endif
+
+engine_cmd:
+	@echo ${ENGINE_USER_CMD_LIST}
+	@echo ${ENGINE_USER_CMD_ADV_LIST}
+	@echo ${ENGINE_SYSTEM_CMD_LIST}
+	@echo ${MAKEFILE_USER_CMD_LIST}
+	@echo ${MAKEFILE_USER_CMD_ADV_LIST}
+	@echo ${GUI_CMD_PARA_LIST}
+
+########
+# bgui #
+########
+
+ifdef GUI_CMD_PARA_LIST
+GUI_CMD_PARA_ARG=-cp ${GUI_CMD_PARA_LIST}
+else
+GUI_CMD_PARA_ARG=
+endif
+
+ifdef GUI_FONT_SIZE
+GUI_FONT_ARG=-f ${GUI_FONT_SIZE}
+else
+GUI_FONT_ARG=
+endif
+
+GUI_TYPE_LIST =
+
+ifdef RUN_APP_CMD_LIST
+
+GUI_TYPE_LIST+= run
+
+_open_gui_run:
+	@${PYTHON3_CMD} ${RVX_ENV}/util/run_app_gui.py -p ${CURDIR} -a ${APP_LIST} -c ${RUN_APP_CMD_LIST} ${GUI_FONT_ARG}
+
+endif
+
+ifndef ENGINE_CMD_LIST
+
+GUI_TYPE_LIST+= cmd cmdadv
+
+GUI_USER_CMD_LIST = ${ENGINE_USER_CMD_LIST}
+GUI_USER_CMD_ALL_LIST = ${ENGINE_USER_CMD_ALL_LIST}
+
+ifdef MAKEFILE_USER_CMD_LIST
+GUI_USER_CMD_LIST+= ${MAKEFILE_USER_CMD_LIST}
+GUI_USER_CMD_ALL_LIST+= ${MAKEFILE_USER_CMD_LIST}
+endif
+
+ifdef MAKEFILE_USER_CMD_ADV_LIST
+GUI_USER_CMD_ALL_LIST+= ${MAKEFILE_USER_CMD_ADV_LIST}
+endif
+
+_check_gui:
+
+_open_gui_cmd:
+	@${PYTHON3_CMD} ${RVX_ENV}/util/run_brief_gui.py -p ${CURDIR} -c ${GUI_USER_CMD_LIST} ${GUI_CMD_PARA_ARG} ${GUI_FONT_ARG}
+
+_open_gui_cmd_adv:
+	@${PYTHON3_CMD} ${RVX_ENV}/util/run_brief_gui.py -p ${CURDIR} -c ${GUI_USER_CMD_ALL_LIST} ${GUI_CMD_PARA_ARG} ${GUI_FONT_ARG} --adv
+
+bgui: gui.cmd
+
+endif
+
+$(addprefix gui., ${GUI_TYPE_LIST}):gui.%:
+	@${PYTHON3_CMD} ${RVX_ENV}/engine/rvx_unified_engine.py -ws ${ENGINE_WS} -cmd gui.$(*) ${ENGINE_PARA} -log ${ENGINE_LOG_DIR}
+
+###########
+# git_add #
+###########
+
+_gitadd:
+	@${PYTHON3_CMD} ${RVX_ENV}/util/add_rvx_materials_to_git.py -home ${_RVX_HOME} -t ${ENGINE_TARGET} -p ${CURDIR} ${_IS_RECURSIVELY}
+
+.PHONY: ${ENGINE_ALL_CMD_LIST}

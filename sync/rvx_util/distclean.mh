@@ -1,0 +1,9 @@
+ifndef ORIGINAL_FILE_LIST
+$(error SHOULD define ORIGINAL_FILE_LIST)
+endif
+
+distclean:
+	@${PYTHON3_CMD} ${RVX_UTIL_HOME}/makefile_util.py -cmd distclean -p ${ORIGINAL_FILE_LIST}
+
+distclean_list:
+	@echo ${ORIGINAL_FILE_LIST}

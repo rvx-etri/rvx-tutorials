@@ -1,0 +1,4 @@
+ENTRY(_start)
+
+SECTIONS
+{

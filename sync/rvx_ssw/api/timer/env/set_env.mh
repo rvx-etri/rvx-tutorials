@@ -1,0 +1,2 @@
+C_SRC += $(wildcard ${RVX_SSW_HOME}/api/timer/src/*.c)
+INCLUDES += -I${RVX_SSW_HOME}/api/timer/src

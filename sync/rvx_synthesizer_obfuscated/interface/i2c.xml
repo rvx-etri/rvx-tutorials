@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<rvx>
+	<def_interface>
+		<name>i2c</name>
+		<role>sender</role>
+		<tristate>
+			<name>clk</name>
+			<library_name>tristate_od</library_name>
+			<parameter>
+				<id>bw_data</id>
+				<value>1</value>
+			</parameter>
+			<role>sender</role>
+		</tristate>
+		<tristate>
+			<name>data</name>
+			<library_name>tristate_od</library_name>
+			<parameter>
+				<id>bw_data</id>
+				<value>1</value>
+			</parameter>
+			<role>sender</role>
+		</tristate>
+	</def_interface>
+</rvx>

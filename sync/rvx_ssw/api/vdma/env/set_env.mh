@@ -1,0 +1,2 @@
+INCLUDES += -I${RVX_SSW_HOME}/api/vdma/include
+C_SRC += $(wildcard ${RVX_SSW_HOME}/api/vdma/src/*.c)

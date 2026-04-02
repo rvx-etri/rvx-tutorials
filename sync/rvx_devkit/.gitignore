@@ -1,0 +1,14 @@
+*~
+*.swp
+*.swo
+*.bak
+*.sh
+__pycache__
+
+rvx_*.log
+rvx_*.cfg
+rvx_python_config.mh
+.rvx_*
+
+cloud_info*.txt
+platform

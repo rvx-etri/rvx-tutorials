@@ -1,0 +1,11 @@
+CC = $(CROSS_COMPILE)gcc
+OBJCOPY = $(CROSS_COMPILE)objcopy
+OBJDUMP = $(CROSS_COMPILE)objdump
+LINKER = $(CC)
+DEBUGGER = $(CROSS_COMPILE)gdb
+ELF_READER = $(CROSS_COMPILE)readelf
+
+CFLAGS += -fno-delete-null-pointer-checks -MD -Wall -fno-builtin-printf -fno-reorder-functions -fdata-sections -ffunction-sections
+LD_FLAGS += -static -nostartfiles -lc -lm -lgcc -Wl,-gc-sections
+
+INCLUDES += -I${RVX_SSW_HOME}/riscv

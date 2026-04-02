@@ -1,0 +1,12 @@
+CROSS_COMPILE = ${RVX_COMPILER_BASIC}
+RISCV_ARCH=rv32im
+RISCV_ABI=ilp32
+CFLAGS += -march=${RISCV_ARCH} -mabi=${RISCV_ABI}
+LD_FLAGS += -march=${RISCV_ARCH} -mabi=${RISCV_ABI}
+
+
+INCLUDES += -I${RVX_SSW_HOME}/core/irom
+ASM_SRC += ${RVX_SSW_HOME}/core/irom/start.S
+ASM_SRC += ${RVX_SSW_HOME}/core/irom/entry.S
+
+include ${RVX_SSW_HOME}/riscv/riscv_compile.mh

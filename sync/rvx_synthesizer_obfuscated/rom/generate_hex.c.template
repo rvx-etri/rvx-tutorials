@@ -1,0 +1,19 @@
+#include <stdio.h>
+#include ""${ARRAY_NAME}".h"
+
+int main()
+{
+  unsigned int* p = (unsigned int*)"${ARRAY_NAME}"_array;
+  FILE* hex_file = fopen(""${OUTPUT_FILE}"", "wb");
+  const int size = (("${ARRAY_NAME}"_byte_size-1)/4+1);
+  int i;
+  for(i=0; i<size; i++)
+  {
+    if(i==0)
+      fprintf(hex_file, "%08x", p[i]);
+    else
+      fprintf(hex_file, "\n%08x", p[i]);
+  }
+  fclose(hex_file);
+  return 0;
+}

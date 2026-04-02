@@ -1,0 +1,92 @@
+<?xml version="1.0" ?>
+<rvx>
+	<dec_ip>
+		<name>prvp_c2c_master</name>
+    <hdl_name>PRVP_C2C_MASTER</hdl_name>
+    <def_parameter>
+			<name>NUM_MASTER</name>
+			<value>1</value>
+		</def_parameter>
+		<def_parameter>
+			<name>BW_ADDR</name>
+			<value>32</value>
+		</def_parameter>
+		<def_parameter>
+			<name>BW_APB_DATA</name>
+			<value>32</value>
+    </def_parameter>
+    <def_parameter>
+			<name>BUFFER_DEPTH</name>
+			<value>10</value>
+    </def_parameter>
+
+    <signal>
+			<name>clk_apb</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>gclk_system</comm_type>
+		</signal>
+
+		<signal>
+			<name>rstnn_apb</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<reset_property>
+			<id>rstnn_apb</id>
+			<type>asynch</type>
+			<type>negative</type>
+			<group>2</group>
+    </reset_property>
+
+    <interface>
+			<name>control</name>
+      <library_name>apb</library_name>
+      <hdl_prefix></hdl_prefix>
+			<role>receiver</role>
+			<comm_type>memory:all</comm_type>
+			<memorymap>
+				<size>0x20000</size>
+			</memorymap>
+			<parameter>
+				<id>bw_addr</id>
+				<value>BW_ADDR</value>
+			</parameter>
+			<parameter>
+				<id>bw_data</id>
+				<value>BW_APB_DATA</value>
+			</parameter>
+			<sync>clk_apb</sync>
+			<init>rstnn_apb</init>
+    </interface>
+
+    <signal>
+      <name>c2cm_clk</name>
+      <width>1</width>
+      <port>output</port>
+      <comm_type>external</comm_type>
+    </signal>
+    <signal>
+      <name>c2cm_csn</name>
+      <width>NUM_MASTER</width>
+      <port>output</port>
+      <comm_type>external</comm_type>
+    </signal>
+
+    <tristate>
+      <name>c2cm_dq</name>
+      <library_name>tristate_od</library_name>
+      <parameter>
+        <id>bw_data</id>
+        <value>4</value>
+      </parameter>
+      <role>sender</role>
+      <comm_type>external</comm_type>
+      <sync>clk_apb</sync>
+      <init>rstnn_apb</init>
+    </tristate>
+
+	</dec_ip>
+</rvx>
+

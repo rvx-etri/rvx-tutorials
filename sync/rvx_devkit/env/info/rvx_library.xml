@@ -1,0 +1,636 @@
+<?xml version="1.0" ?>
+<rvx>
+	<spec_list>
+		<define>
+			<name include="True" editable="False">num_core_user</name>
+			<type include="False" editable="False">int</type>
+			<value include="True" editable="True">1</value>
+			<help include="False" editable="False">core 개수</help>
+			<example include="False" editable="False">0,2</example>
+			<range include="False" editable="False">0~4</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">num_lock_user</name>
+			<type include="False" editable="False">int</type>
+			<value include="True" editable="True">1</value>
+			<help include="False" editable="False">멀티코어를 위한 lock 개수</help>
+			<example include="False" editable="False">0,1</example>
+			<range include="False" editable="False">0~4</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">num_barrier_user</name>
+			<type include="False" editable="False">int</type>
+			<value include="True" editable="True">1</value>
+			<help include="False" editable="False">멀티코어를 위한 barrier 개수</help>
+			<example include="False" editable="False">0,1</example>
+			<range include="False" editable="False">0~4</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">num_uart_user</name>
+			<type include="False" editable="False">int</type>
+			<value include="True" editable="True">0</value>
+			<help include="False" editable="False">UART 개수</help>
+			<example include="False" editable="False">0,2</example>
+			<range include="False" editable="False">0~4</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">num_spi_user</name>
+			<type include="False" editable="False">int</type>
+			<value include="True" editable="True">0</value>
+			<help include="False" editable="False">SPI 개수</help>
+			<example include="False" editable="False">0,2</example>
+			<range include="False" editable="False">0~4</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">num_i2c_user</name>
+			<type include="False" editable="False">int</type>
+			<value include="True" editable="True">0</value>
+			<help include="False" editable="False">I2C 개수</help>
+			<example include="False" editable="False">0,2</example>
+			<range include="False" editable="False">0~4</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">num_uart_readymade</name>
+			<type include="False" editable="False">int</type>
+			<value include="True" editable="True">0</value>
+			<help include="False" editable="False">Readymade UART 개수</help>
+			<example include="False" editable="False">0,2</example>
+			<range include="False" editable="False">0~4</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">num_spi_readymade</name>
+			<type include="False" editable="False">int</type>
+			<value include="True" editable="True">0</value>
+			<help include="False" editable="False">Readymade SPI 개수</help>
+			<example include="False" editable="False">0,2</example>
+			<range include="False" editable="False">0~4</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">num_i2c_readymade</name>
+			<type include="False" editable="False">int</type>
+			<value include="True" editable="True">0</value>
+			<help include="False" editable="False">Readymade I2C 개수</help>
+			<example include="False" editable="False">0,2</example>
+			<range include="False" editable="False">0~4</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">num_core_user</name>
+			<type include="False" editable="False">int</type>
+			<value include="True" editable="True">1</value>
+			<help include="False" editable="False">Core 개수</help>
+			<example include="False" editable="False">0,2</example>
+			<range include="False" editable="False">0~4</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">sram_size</name>
+			<type include="False" editable="False">byte</type>
+			<value include="True" editable="True" type="byte">64kB</value>
+			<help include="False" editable="False">기본 SRAM의 용량</help>
+			<example include="False" editable="False">16kB,16384 byte</example>
+			<range include="False" editable="False">16kB~128kB</range>
+			<unique/>
+			<essential/>
+		</define>
+		<define>
+			<name include="True" editable="False">include_timer</name>
+			<type include="False" editable="False">bool</type>
+			<value include="True" editable="True" type="bool">False</value>
+			<help include="False" editable="False">Timer 인터럽트 사용 여부</help>
+			<range include="False" editable="False">True,False</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">include_plic</name>
+			<type include="False" editable="False">bool</type>
+			<value include="True" editable="True" type="bool">False</value>
+			<help include="False" editable="False">인터럽트 컨트롤러 사용 여부</help>
+			<range include="False" editable="False">True,False</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">include_user_interrupts</name>
+			<type include="False" editable="False">bool</type>
+			<value include="True" editable="True" type="bool">False</value>
+			<help include="False" editable="False">유저 인터럽트 소스 사용 여부</help>
+			<range include="False" editable="False">True,False</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">include_oled_bw</name>
+			<type include="False" editable="False">bool</type>
+			<value include="True" editable="True" type="bool">False</value>
+			<help include="False" editable="False">Pmod 흑백 OLED 사용 여부</help>
+			<range include="False" editable="False">True,False</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">include_oled_rgb</name>
+			<type include="False" editable="False">bool</type>
+			<value include="True" editable="True" type="bool">False</value>
+			<help include="False" editable="False">Pmod 칼라 OLED 사용 여부</help>
+			<range include="False" editable="False">True,False</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">include_spi_flash</name>
+			<type include="False" editable="False">bool</type>
+			<value include="True" editable="True" type="bool">False</value>
+			<help include="False" editable="False">SPI Flash 사용 여부</help>
+			<range include="False" editable="False">True,False</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">include_arducam</name>
+			<type include="False" editable="False">bool</type>
+			<value include="True" editable="True" type="bool">False</value>
+			<help include="False" editable="False">Arducam 사용 여부</help>
+			<range include="False" editable="False">True,False</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">include_slow_dram</name>
+			<type include="False" editable="False">bool</type>
+			<value include="True" editable="True" type="bool">False</value>
+			<help include="False" editable="False">Slow DRAM 사용 여부</help>
+			<range include="False" editable="False">True,False</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">include_fast_dram</name>
+			<type include="False" editable="False">bool</type>
+			<value include="True" editable="True" type="bool">False</value>
+			<help include="False" editable="False">Fast DRAM 사용 여부. 특정 FPGA만 사용가능</help>
+			<range include="False" editable="False">True,False</range>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">include_profiling</name>
+			<type include="False" editable="False">bool</type>
+			<value include="True" editable="True" type="bool">False</value>
+			<help include="False" editable="False">프로파일링 기능 사용 여부</help>
+			<range include="False" editable="False">True,False</range>
+			<unique/>
+		</define>
+	</spec_list>
+	<clock_list>
+		<define>
+			<name include="True" editable="False">clk_system</name>
+			<value include="True" editable="True"/>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">clk_core</name>
+			<value include="True" editable="True"/>
+			<unique/>
+		</define>
+		<define>
+			<name include="True" editable="False">clk_noc</name>
+			<value include="True" editable="True"/>
+			<unique/>
+		</define>
+		<user_define>
+			<name include="True" editable="True">please_modify_name</name>
+			<value include="True" editable="True"/>
+		</user_define>
+	</clock_list>
+	<ip_list>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_masterif_moi_clkin</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+				    
+			</def_parameter>
+			    
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">HAS_BURDEN</name>
+				<value include="True" editable="True">0</value>
+				    
+			</def_parameter>
+			    
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_BURDEN</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_masterif_axi_clkout</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_AXI_TID</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_masterif_axi_clkin</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_AXI_TID</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_masterif_axi4_clkin</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_AXI_TID</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">rvc_swerv_eh1</name>
+			<hdl_name include="False" editable="False">RVC_SWERV_EH1</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_masterif_ahb_clkin</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">vta</name>
+			<hdl_name include="False" editable="False">ERVP_VTA</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_slaveif_axi4_clkin</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">SIZE_OF_MEMORYMAP</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_AXI_TID</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_slaveif_apb_clkout</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">SIZE_OF_MEMORYMAP</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_masterif_axi4_clkout</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_AXI_TID</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_masterif_ahb_clkout</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">rvc_biriscv</name>
+			<hdl_name include="False" editable="False">RVC_BIRISCV</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">rvc_orca_cache</name>
+			<hdl_name include="False" editable="False">RVC_ORCA_CACHE</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_slaveif_axi_clkin</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">SIZE_OF_MEMORYMAP</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_AXI_TID</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_slaveif_apb</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">SIZE_OF_MEMORYMAP</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">rvc_orca</name>
+			<hdl_name include="False" editable="False">RVC_ORCA</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_slaveif_apb_clkin</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">SIZE_OF_MEMORYMAP</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">Florian PU</name>
+			<hdl_name include="False" editable="False">RVC_ROCKET_BIG</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">rvc_rocket_medium</name>
+			<hdl_name include="False" editable="False">RVC_ROCKET_MEDIUM</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_slaveif_axi_clkout</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">SIZE_OF_MEMORYMAP</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_AXI_TID</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_slaveif_ahb_clkout</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">SIZE_OF_MEMORYMAP</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_slaveif_axi4l_clkout</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">SIZE_OF_MEMORYMAP</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_masterif_moi_clkout</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+				    
+			</def_parameter>
+			    
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">HAS_BURDEN</name>
+				<value include="True" editable="True">0</value>
+				    
+			</def_parameter>
+			    
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_BURDEN</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_masterif_axi4l_clkout</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_slaveif_axi4_clkout</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">SIZE_OF_MEMORYMAP</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_AXI_TID</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_slaveif_ahb_clkin</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">SIZE_OF_MEMORYMAP</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">rvc_rocket_big</name>
+			<hdl_name include="False" editable="False">RVC_ROCKET_BIG</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">Compress PU</name>
+			<hdl_name include="False" editable="False">ERVP_JPEG_ENCODER</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_masterif_axi4l_clkin</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+		</dec_ip>
+		<dec_ip converted="ip_instance">
+			<name converted="library_name" include="True" editable="False">user_slaveif_axi4l_clkin</name>
+			<hdl_name include="False" editable="False">USER_IP</hdl_name>
+			<instance_name converted="name" include="select" editable="False"/>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">SIZE_OF_MEMORYMAP</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_ADDR</name>
+				<value include="True" editable="True">1</value>
+			</def_parameter>
+			<def_parameter converted="parameter" include="select">
+				<name converted="id" include="True" editable="False">BW_DATA</name>
+				      
+				<value include="True" editable="True">1</value>
+				    
+			</def_parameter>
+		</dec_ip>
+	</ip_list>
+	<etc_list>
+		<external_port converted="signal">
+			<name include="True" editable="True">please_modify_name</name>
+			<width include="True" editable="True">1</width>
+			<port include="True" editable="True">output</port>
+			<user_dependent include="True" editable="False"/>
+		</external_port>
+	</etc_list>
+</rvx>

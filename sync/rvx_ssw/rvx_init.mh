@@ -1,0 +1,41 @@
+PYTHON3_VERSION=3.6.0
+PIP3=${shell which pip3}
+
+ifndef RVX_INIT_HOME
+RVX_INIT_HOME=./rvx_init
+endif
+
+python_centos:
+	#sudo yum install python2
+	sudo yum install zlib zlib-devel openssl openssl-devel
+	wget https://www.python.org/ftp/python/${PYTHON3_VERSION}/Python-${PYTHON3_VERSION}.tar.xz
+	tar xvf Python-${PYTHON3_VERSION}.tar.xz
+	cd ./Python-${PYTHON3_VERSION}; ./configure; make; sudo make install
+
+python_ubuntu:
+	#sudo apt-get install python2
+	sudo apt-get install python3
+	sudo apt-get install python3-pip
+	sudo apt-get install python3-tk
+	sudo apt-get upgrade python3
+	sudo apt-get upgrade python3-pip
+	sudo apt-get upgrade python3-tk
+
+pip3:
+	sudo ${PIP3} install --upgrade pip
+	sudo ${PIP3} install distro numpy cryptography paramiko pyelftools tkinter
+	sudo ${PIP3} install --upgrade distro numpy cryptography paramiko pyelftools
+
+rvx_init_git:
+	@if ! [ -d ./rvx_init ] ;	\
+	then \
+		git clone https://bitbucket.org/kyuseung_han/rvx_init.git ; \
+	fi
+
+update_rvx_init:
+	@if [ -f ${RVX_INIT_HOME}/rvx_init.mh ] ;	\
+	then \
+		cp ${RVX_INIT_HOME}/rvx_init.mh ./rvx_init.mh ; \
+	fi
+
+-include ${RVX_INIT_HOME}/rvx_init_extended.mh

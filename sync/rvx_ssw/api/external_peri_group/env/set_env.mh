@@ -1,0 +1,7 @@
+include ${RVX_SSW_HOME}/api/uart/env/set_env.mh
+include ${RVX_SSW_HOME}/api/spi/env/set_env.mh
+include ${RVX_SSW_HOME}/api/i2c/env/set_env.mh
+include ${RVX_SSW_HOME}/api/gpio/env/set_env.mh
+
+C_SRC += $(wildcard ${RVX_SSW_HOME}/api/external_peri_group/src/*.c)
+INCLUDES += -I${RVX_SSW_HOME}/api/external_peri_group/src

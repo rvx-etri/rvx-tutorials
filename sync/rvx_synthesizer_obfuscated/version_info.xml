@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<version_info>
+  <rvx_synthesizer.path>rvx_shared/rvx_synthesizer</rvx_synthesizer.path>
+  <rvx_synthesizer.url>git@bitbucket.org:kyuseung_han/rvx_synthesizer.git</rvx_synthesizer.url>
+  <rvx_synthesizer.commit>9ced509</rvx_synthesizer.commit>
+  <rvx_synthesizer.date>2026-03-26-19-53</rvx_synthesizer.date>
+</version_info>

@@ -1,0 +1,50 @@
+<?xml version="1.0" ?>
+<rvx>
+	<def_interface>
+		<name>tristate_oe</name>
+		<role>sender</role>
+		<def_parameter>
+			<name>bw_data</name>
+			<value>1</value>
+		</def_parameter>
+		<signal>
+			<name>oe</name>
+			<width>bw_data</width>
+			<port>output</port>
+		</signal>
+		<signal>
+			<name>oval</name>
+			<width>bw_data</width>
+			<port>output</port>
+		</signal>
+		<signal>
+			<name>ival</name>
+			<width>bw_data</width>
+			<port>input</port>
+		</signal>
+	</def_interface>
+
+	<def_interface>
+		<name>tristate_od</name>
+		<role>sender</role>
+		<def_parameter>
+			<name>bw_data</name>
+			<value>1</value>
+		</def_parameter>
+		<signal>
+			<name>od</name>
+			<width>bw_data</width>
+			<port>output</port>
+		</signal>
+		<signal>
+			<name>oval</name>
+			<width>bw_data</width>
+			<port>output</port>
+		</signal>
+		<signal>
+			<name>ival</name>
+			<width>bw_data</width>
+			<port>input</port>
+		</signal>
+	</def_interface>
+</rvx>

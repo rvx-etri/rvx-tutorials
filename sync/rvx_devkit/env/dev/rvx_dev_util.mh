@@ -1,0 +1,184 @@
+## ****************************************************************************
+## ****************************************************************************
+## Copyright SoC Design Research Group, All rights reserved.    
+## Electronics and Telecommunications Research Institute (ETRI)
+##
+## THESE DOCUMENTS CONTAIN CONFIDENTIAL INFORMATION AND KNOWLEDGE 
+## WHICH IS THE PROPERTY OF ETRI. NO PART OF THIS PUBLICATION IS 
+## TO BE USED FOR ANY OTHER PURPOSE, AND THESE ARE NOT TO BE 
+## REPRODUCED, COPIED, DISCLOSED, TRANSMITTED, STORED IN A RETRIEVAL 
+## SYSTEM OR TRANSLATED INTO ANY OTHER HUMAN OR COMPUTER LANGUAGE, 
+## IN ANY FORM, BY ANY MEANS, IN WHOLE OR IN PART, WITHOUT THE 
+## COMPLETE PRIOR WRITTEN PERMISSION OF ETRI.
+## ****************************************************************************
+## 2021-04-05
+## Kyuseung Han (han@etri.re.kr)
+## ****************************************************************************
+## ****************************************************************************
+
+APP_ORIGIN_DIR=${RVX_ETRI_HOME}/app
+ifdef PYTHON3_CMD
+APP_ORIGIN_LIST = $(shell ${PYTHON3_CMD} ${RVX_UTIL_HOME}/os_util.py dir_list ${APP_ORIGIN_DIR} )
+APP_LIST = $(shell ${PYTHON3_CMD} ${RVX_UTIL_HOME}/os_util.py dir_list ${ENGINE_WS}/${PLATFORM_NAME}/app )
+PLATFORM_LIST =  $(shell ${PYTHON3_CMD} ${RVX_UTIL_HOME}/os_util.py dir_list ${ENGINE_WS} )
+endif
+
+var:
+	@echo ${APP_BASE_DIR}
+	@echo $(APP_LIST)
+	@echo ${APP_ORIGIN_LIST}
+	@echo ${PLATFORM_BASE_DIR}
+	@echo ${PLATFORM_NAME}
+	@echo ${PLATFORM_LIST}
+
+_check_etri_home:
+	$(if $(RVX_ETRI_HOME), , $(error RVX_ETRI_HOME is NOT defined))
+
+import_app_list:
+	@echo ${APP_ORIGIN_LIST}
+
+import_app: $(addsuffix .import_app, $(APP_ORIGIN_LIST))
+
+$(addsuffix .import_app, $(APP_ORIGIN_LIST)):%.import_app:
+	@if [ -d ${APP_BASE_DIR}/$(*) ] ;	\
+	then \
+		rm -rf ${APP_BASE_DIR}/$(*); \
+	fi
+	@cd ${APP_BASE_DIR} && cp -r ${APP_ORIGIN_DIR}/$(*) ./
+
+reimport_app: $(addsuffix .reimport_app, $(APP_ORIGIN_LIST))
+
+$(addsuffix .reimport_app, $(APP_ORIGIN_LIST)):%.reimport_app:
+	@if [ -d ${APP_BASE_DIR}/$(*) ] ;	\
+	then \
+		if [ -d ${APP_BASE_DIR}/$(*)/include ] ; \
+		then	\
+			if [ -d ${APP_BASE_DIR}/include ] ; \
+			then	\
+				echo "Conflict in \"app/include\""; \
+			else \
+				cp -r ${APP_BASE_DIR}/$(*)/include ${APP_BASE_DIR}; \
+				cd ${APP_BASE_DIR} && make $(*).import_app; \
+				mv ${APP_BASE_DIR}/include ${APP_BASE_DIR}/$(*)/; \
+			fi; \
+		else \
+			cd ${APP_BASE_DIR} && make $(*).import_app; \
+		fi; \
+	fi
+
+update_app: $(addsuffix .update_app, $(APP_LIST))
+
+$(addsuffix .update_app, $(APP_LIST)):%.update_app:
+	if [ -d ${APP_BASE_DIR}/$(*) ] ;	\
+	then \
+		cd ${APP_BASE_DIR}/$(*); \
+		cp -f ${RVX_ENV}/makefile/Makefile.app.template ./Makefile; \
+		make compile_list; \
+	fi
+
+$(addsuffix .backup_app, $(APP_LIST)):%.backup_app:
+	@if [ -d ${APP_ORIGIN_DIR}/$(*) ] ;	\
+	then \
+		cd ${APP_ORIGIN_DIR} && rm -rf ./$(*); \
+	fi
+	cd ${APP_BASE_DIR}/$(*) && make clean
+	cd ${APP_BASE_DIR} && cp -r ./$(*) ${APP_ORIGIN_DIR}/
+
+$(addsuffix .backup_app_if_exist, $(APP_LIST)):%.backup_app_if_exist:
+	@if [ -d ${APP_ORIGIN_DIR}/$(*) ] ;	\
+	then \
+		cd ${APP_ORIGIN_DIR} && rm -rf ./$(*); \
+		cd ${APP_BASE_DIR}/$(*) && make clean; \
+		cd ${APP_BASE_DIR} && cp -r ./$(*) ${APP_ORIGIN_DIR}/; \
+	fi
+
+backup_app_if_exist: $(addsuffix .backup_app_if_exist, $(APP_LIST))
+
+test_build: $(addsuffix .test_build, $(APP_LIST))
+
+$(addsuffix .test_build, $(APP_LIST)):%.test_build:
+	if [ -d ${APP_BASE_DIR}/$(*) ] ;	\
+	then \
+		cd ${APP_BASE_DIR}/$(*) && make clean rtl; \
+    test -e ${APP_BASE_DIR}/$(*)/rtl.release/compile_correctly || exit 1; \
+	fi
+
+platform_reimport_app: $(addsuffix .platform_reimport_app, $(PLATFORM_LIST))
+
+$(addsuffix .platform_reimport_app, $(PLATFORM_LIST)):%.platform_reimport_app:
+	if [ -f ${PLATFORM_BASE_DIR}/$(*)/app/Makefile ] ;	\
+	then \
+		cd ${PLATFORM_BASE_DIR}/$(*)/app && make reimport_app; \
+	fi
+
+platform_update_app: $(addsuffix .platform_update_app, $(PLATFORM_LIST))
+
+$(addsuffix .platform_update_app, $(PLATFORM_LIST)):%.platform_update_app:
+	if [ -f ${PLATFORM_BASE_DIR}/$(*)/app/Makefile ] ;	\
+	then \
+		cd ${PLATFORM_BASE_DIR}/$(*)/app; \
+		cp -f ${RVX_ENV}/makefile/Makefile.app_base.template ./Makefile; \
+		make update_app; \
+	fi
+
+reimport_platform: $(addsuffix .reimport_platform, $(PLATFORM_LIST))
+
+$(addsuffix .reimport_platform, $(PLATFORM_LIST)):%.reimport_platform:
+	cd ${PLATFORM_BASE_DIR} && make import PLATFORM_NAME=$(*)
+
+update_platform: $(addsuffix .update_platform, $(PLATFORM_LIST))
+
+$(addsuffix .update_platform, $(PLATFORM_LIST)):%.update_platform:
+	if [ -d ${PLATFORM_BASE_DIR}/$(*) ] ;	\
+	then \
+		cd ${PLATFORM_BASE_DIR}/$(*); \
+		cp -f ${RVX_ENV}/makefile/Makefile.platform.template ./Makefile; \
+	fi
+
+BEFORE=None
+AFTER=None
+
+__rename:
+	${PYTHON3_CMD} ${RVX_UTIL_HOME}/rename.py -p ${TARGET_DIR} -b ${BEFORE} -a ${AFTER}
+
+rename:
+	make __rename TARGET_DIR=. BEFORE=${BEFORE} AFTER=${AFTER}
+
+copy_platform:
+	@cp -r ./${BEFORE} ./${AFTER}
+	@make __rename TARGET_DIR=./${AFTER} BEFORE=${BEFORE} AFTER=${AFTER}
+	@cd ./${AFTER} && make clean && rm -rf .log .rvedata arch fpga_component
+
+test_platform: $(addsuffix .test_platform, $(PLATFORM_LIST))
+
+$(addsuffix .test_platform, $(PLATFORM_LIST)):%.test_platform:
+	cd ${PLATFORM_BASE_DIR}/$(*) && make test
+
+###############
+# rvx_install #
+###############
+
+update_from_original: update_from_original_util update_from_original_devkit update_from_original_etc
+
+update_from_original_util: _check_etri_home
+	cp ${RVX_UTIL_HOME}/config_file_manager.py ./
+	cp ${RVX_UTIL_HOME}/configure_template.py ./
+	cp ${RVX_UTIL_HOME}/generate_git_info.py ./
+	cp ${RVX_UTIL_HOME}/os_util.py ./
+	cp ${RVX_UTIL_HOME}/re_util.py ./
+	cp ${RVX_UTIL_HOME}/xml_util.py ./
+	cp ${RVX_UTIL_HOME}/misc_util.py ./
+	cp ${RVX_UTIL_HOME}/manage_version_info.py ./
+
+update_from_original_devkit: _check_etri_home
+	cp ${RVX_DEVKIT_HOME}/env/engine/rvx_config.py ./
+	cp ${RVX_DEVKIT_HOME}/env/engine/rvx_devkit.py ./
+	cp ${RVX_DEVKIT_HOME}/env/engine/rvx_engine_log.py ./
+	cp ${RVX_DEVKIT_HOME}/env/engine/rvx_engine_util.py ./
+	cp ${RVX_DEVKIT_HOME}/env/engine/rvx_remote_handler.py ./
+
+update_from_original_etc: _check_etri_home
+	cd ./mini_git/platform && make update_makefile
+	cd ./mini_git/imp_class_info && make update_makefile
+	cd ./mini_git/imp_class_info && make reimport
+	cp ${RVX_SHARED_HOME}/rvx_init/rvx_init.mh ${CURDIR}/mini_git/

@@ -1,0 +1,30 @@
+ifeq ($(OS),Windows_NT)
+	drive_letter = $(firstword $(subst /, ,$1))
+	absolute_path = $(call drive_letter,$1)$(abspath $(subst $(call drive_letter,$1),,$1))
+else
+	absolute_path = $(abspath $1)
+endif
+
+default:
+	@echo "target is required"
+
+-include ./rvx_each.mh
+
+ifdef TEMPLATE_FILE
+ifndef TEMPLATE_CONFIG
+update_makefile:
+	@cp -f ${TEMPLATE_FILE} ./Makefile
+else
+update_makefile:
+	@python3 ${RVX_UTIL_HOME}/configure_template.py -i ${TEMPLATE_FILE} -o ./Makefile -c ${TEMPLATE_CONFIG}
+endif
+else
+update_makefile:
+  
+endif
+
+update_makefiles:
+	@python3 ${RVX_UTIL_HOME}/update_makefile.py -p ${CURDIR}
+
+print-%:
+	@echo $*=$($*)

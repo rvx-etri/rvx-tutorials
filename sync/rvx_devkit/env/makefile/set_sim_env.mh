@@ -1,0 +1,2 @@
+include ${PLATFORM_DIR}/arch/rtl/env/set_sim_env.mh
+-include ${PLATFORM_DIR}/user/env/set_sim_env.mh

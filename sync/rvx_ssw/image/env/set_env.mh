@@ -1,0 +1,7 @@
+ifndef __IMAGE_ENV__
+__IMAGE_ENV__=
+
+C_SRC += $(wildcard ${RVX_SSW_HOME}/image/src/*.c)
+INCLUDES += -I${RVX_SSW_HOME}/image/src
+
+endif

@@ -1,0 +1,5 @@
+*.c
+*.h
+*_temp.bmp
+*_temp.jpeg
+*_temp.jpg

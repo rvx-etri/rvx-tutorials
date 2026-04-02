@@ -1,0 +1,6 @@
+set PROJECT_NAME "${PROJECT_NAME}"
+create_project ${PROJECT_NAME} ./${PROJECT_NAME} -part "${FPGA_PART}" -ip
+
+set files [glob ./xci/*/*.{xci,xcix}]
+add_files -norecurse $files
+close_project

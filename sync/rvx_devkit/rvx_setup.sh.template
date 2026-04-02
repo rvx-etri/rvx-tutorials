@@ -1,0 +1,17 @@
+export RVX_DEVKIT_HOME="${RVX_DEVKIT_HOME}"
+
+source "${RVX_SHARED_HOME}"/rvx_setup.sh
+
+export RV_GDB_PORT="${RV_GDB_PORT}"
+
+if [ -z "$RVX_SSW_HOME" ]
+then
+if [ -d ${RVX_DEVKIT_HOME}/rvx_ssw ]
+then
+export RVX_SSW_HOME=${RVX_DEVKIT_HOME}/rvx_ssw
+else
+echo "[ERROR] ssw is NOT installed"
+fi
+fi
+
+export RVX_ENV=${RVX_DEVKIT_HOME}/env

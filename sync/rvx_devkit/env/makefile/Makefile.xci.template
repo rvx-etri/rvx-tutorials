@@ -1,0 +1,72 @@
+## ****************************************************************************
+## ****************************************************************************
+## Copyright SoC Design Research Group, All rights reserved.    
+## Electronics and Telecommunications Research Institute (ETRI)
+##
+## THESE DOCUMENTS CONTAIN CONFIDENTIAL INFORMATION AND KNOWLEDGE 
+## WHICH IS THE PROPERTY OF ETRI. NO PART OF THIS PUBLICATION IS 
+## TO BE USED FOR ANY OTHER PURPOSE, AND THESE ARE NOT TO BE 
+## REPRODUCED, COPIED, DISCLOSED, TRANSMITTED, STORED IN A RETRIEVAL 
+## SYSTEM OR TRANSLATED INTO ANY OTHER HUMAN OR COMPUTER LANGUAGE, 
+## IN ANY FORM, BY ANY MEANS, IN WHOLE OR IN PART, WITHOUT THE 
+## COMPLETE PRIOR WRITTEN PERMISSION OF ETRI.
+## ****************************************************************************
+## 2020-01-06
+## Kyuseung Han (han@etri.re.kr)
+## ****************************************************************************
+## ****************************************************************************
+
+ifdef RVX_MINI_HOME
+	include ${RVX_MINI_HOME}/rvx_config.mh
+else
+	include ${RVX_DEVKIT_HOME}/rvx_config.mh
+endif
+
+TEMPLATE_FILE = ${RVX_ENV}/makefile/Makefile.xci.template
+TEMPLATE_CONFIG = "${TEMPLATE_CONFIG}"
+include ${RVX_UTIL_HOME}/template_makefile.mh
+
+FPGA_NAME="${FPGA_NAME}"
+PROJECT_DIR="${PROJECT_NAME}"
+PROJECT_FILE=./${PROJECT_DIR}/"${PROJECT_NAME}".xpr
+
+XCI_LIST = $(shell ${PYTHON3_CMD} ${RVX_UTIL_HOME}/os_util.py dir_list ${CURDIR}/xci )
+
+project:
+	@if ! [ -f ${PROJECT_FILE} ] ;	\
+	then \
+		vivado -mode batch -source ./make_ip_project.tcl; \
+	else \
+		echo "Vivado project already exists"; \
+	fi;
+
+all: clean_project project gen
+
+open:
+	-@vivado ${PROJECT_FILE}
+
+gen:
+	-@cd ${PROJECT_DIR}; vivado -mode batch -source ../generate_xci.tcl
+
+update: $(addprefix update., $(XCI_LIST))
+
+$(addprefix update., $(XCI_LIST)):update.%:
+	@if ! [ -d ${RVX_HWLIB_HOME}/lib_fpga/${FPGA_NAME}/xci/$(*) ] ;	\
+	then \
+		mkdir -p ${RVX_HWLIB_HOME}/lib_fpga/${FPGA_NAME}/xci/$(*); \
+	fi;
+	-@cd ./xci/$(*); cp $(*).xci *.prj ${RVX_HWLIB_HOME}/lib_fpga/${FPGA_NAME}/xci/$(*)/
+
+body:
+	${PYTHON3_CMD} ${RVX_DEV_UTIL_HOME}/generate_xci_body.py -i ./xci -o .
+
+port:
+	${PYTHON3_CMD} ${RVX_DEV_UTIL_HOME}/generate_port_info.py -i ./include -o ./include
+
+clean: clean_log clean_project
+
+clean_log:
+	-@rm -rf *.jou *.log
+
+clean_project:
+	-@rm -rf ${PROJECT_DIR}

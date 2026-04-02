@@ -1,0 +1,63 @@
+localparam "${FULL_NODE_NAME}"_NUM_READ_REG = "${NUM_BIPUT_REG}" + "${NUM_OUTPUT_REG}";
+localparam "${FULL_NODE_NAME}"_NUM_WRITE_REG = "${NUM_BIPUT_REG}" + "${NUM_INPUT_REG}";
+
+wire ["${FULL_NODE_NAME}"_NUM_WRITE_REG-1:0] "${INSTANCE_NAME}"_wreg_rme_list;
+wire [BW_MOVE_DATA*"${FULL_NODE_NAME}"_NUM_WRITE_REG-1:0] "${INSTANCE_NAME}"_wreg_rmvalue_list;
+wire ["${FULL_NODE_NAME}"_NUM_READ_REG-1:0] "${INSTANCE_NAME}"_rreg_sme_list;
+wire [BW_MOVE_DATA*"${FULL_NODE_NAME}"_NUM_READ_REG-1:0] "${INSTANCE_NAME}"_rreg_smvalue_list;
+
+wire "${INSTANCE_NAME}"_node_start;
+wire "${INSTANCE_NAME}"_node_finish;
+
+"${FULL_NODE_NAME}"
+"${INSTANCE_NAME}"
+(
+	.clk(clk_pact),
+	.rstnn(rstnn_pact),
+
+	.rreg_sme_list("${INSTANCE_NAME}"_rreg_sme_list),
+	.rreg_smvalue_list("${INSTANCE_NAME}"_rreg_smvalue_list),
+	.wreg_rme_list("${INSTANCE_NAME}"_wreg_rme_list),
+	.wreg_rmvalue_list("${INSTANCE_NAME}"_wreg_rmvalue_list),
+
+	.start("${INSTANCE_NAME}"_node_start),
+	.finish("${INSTANCE_NAME}"_node_finish),
+	.subop(subop),
+	.operation_is_float(operation_is_float),
+	.immediate_value(immediate_value)
+);
+
+assign "${INSTANCE_NAME}"_node_start = op_usernode_start_list[`PACT_NODE_INDEX_"${NODE_NAME}"];
+assign actual_op_usernode_finish_list[`PACT_NODE_INDEX_"${NODE_NAME}"] = "${INSTANCE_NAME}"_node_finish;
+
+`ifdef PACT_INCLUDE_"${NODE_NAME}"_BIPUT_REG
+generate
+for(i=0; i<"${NUM_BIPUT_REG}"; i=i+1)
+begin : i_connect_"${INSTANCE_NAME}"_biput_reg
+	assign "${INSTANCE_NAME}"_wreg_rme_list[i] = wreg_me[`PACT_"${NODE_NAME}"_BR00+i];
+	assign "${INSTANCE_NAME}"_wreg_rmvalue_list[(i+1)*BW_MOVE_DATA-1-:BW_MOVE_DATA] = wreg_mvalue[`PACT_"${NODE_NAME}"_BR00+i];
+	assign "${INSTANCE_NAME}"_rreg_sme_list[i] = rreg_me[`PACT_"${NODE_NAME}"_BR00+i];
+	assign rreg_mvalue[`PACT_"${NODE_NAME}"_BR00+i] = "${INSTANCE_NAME}"_rreg_smvalue_list[(i+1)*BW_MOVE_DATA-1-:BW_MOVE_DATA];
+end
+endgenerate
+`endif // PACT_INCLUDE_"${NODE_NAME}"_BIPUT_REG
+
+`ifdef PACT_INCLUDE_"${NODE_NAME}"_INPUT_REG
+generate
+for(i=0; i<"${NUM_INPUT_REG}"; i=i+1)
+begin : i_connect_"${INSTANCE_NAME}"_input_reg
+	assign "${INSTANCE_NAME}"_wreg_rme_list[("${NUM_BIPUT_REG}"+i)] = wreg_me[`PACT_"${NODE_NAME}"_IR00+i];
+	assign "${INSTANCE_NAME}"_wreg_rmvalue_list[(("${NUM_BIPUT_REG}"+i)+1)*BW_MOVE_DATA-1-:BW_MOVE_DATA] = wreg_mvalue[`PACT_"${NODE_NAME}"_IR00+i];
+end
+endgenerate
+`endif // PACT_INCLUDE_"${NODE_NAME}"_INPUT_REG
+
+`ifdef PACT_INCLUDE_"${NODE_NAME}"_OUTPUT_REG
+generate
+for(i=0; i<"${NUM_OUTPUT_REG}"; i=i+1)
+begin : i_connect_"${INSTANCE_NAME}"_output_reg
+	assign "${INSTANCE_NAME}"_rreg_sme_list[("${NUM_BIPUT_REG}"+i)] = rreg_me[`PACT_"${NODE_NAME}"_OR00+i];
+	assign rreg_mvalue[`PACT_"${NODE_NAME}"_OR00+i] = "${INSTANCE_NAME}"_rreg_smvalue_list[(("${NUM_BIPUT_REG}"+i)+1)*BW_MOVE_DATA-1-:BW_MOVE_DATA];
+end
+endgenerate
+`endif // PACT_INCLUDE_"${NODE_NAME}"_OUTPUT_REG

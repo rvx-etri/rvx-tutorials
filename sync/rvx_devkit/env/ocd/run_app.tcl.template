@@ -1,0 +1,27 @@
+set APP_NAME "${APP_NAME}"
+
+reset_all_platform
+print_platform_info
+
+if {[get_boot_mode]==$BOOT_MODE_OCD} {
+	if [info exists SMALL_RAM_BASEADDR]==1 {
+		echo "\nwrite_hex_to_sram : start"
+		write_hex_to_memory ${SMALL_RAM_BASEADDR} ./${APP_NAME}.sram.hex ${SMALL_RAM_SIZE}
+		echo "write_hex_to_sram : end"
+	}
+	if [info exists LARGE_RAM_BASEADDR]==1 {
+		echo "\nwrite_hex_to_dram : start"
+		write_hex_to_memory ${LARGE_RAM_BASEADDR} ./${APP_NAME}.dram.hex ${LARGE_RAM_SIZE}
+		echo "write_hex_to_dram : end"
+	}
+  
+  if [info exists INCLUDE_SDRAM]==1 {
+    if [info exists SDRAM_CLK_POL]==1 {
+      init_sdram $SDRAM_CLK_POL $SDRAM_CLK_SKEW $SDRAM_CELL_CONFIG $SDRAM_REFRESH_CYCLE $SDRAM_DELAY_CONFIG
+    }
+  }
+  set_app_addr $APP_ADDR
+  set_all_ready
+} else {
+	echo [format "\n\[MUNOC|ERROR\] boot mode should be set to OCD_MODE"]
+}

@@ -1,0 +1,55 @@
+<?xml version="1.0" ?>
+<rvx>
+	<dec_ip>
+		<name>led_checker</name>
+		<hdl_name>ERVP_LED_CHECKER</hdl_name>
+
+		<def_parameter>
+			<name>NUM_LED</name>
+			<value>1</value>
+		</def_parameter>
+
+		<signal>
+			<name>clk</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>gclk_system_external</comm_type>
+		</signal>
+			
+		<signal>
+			<name>tick_62d5ms</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>tick_62d5ms</comm_type>
+		</signal>
+
+		<signal>
+			<name>rstnn</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<reset_property>
+			<id>rstnn</id>
+			<type>asynch</type>
+			<type>negative</type>
+			<group>1</group>
+		</reset_property>
+
+		<signal>
+			<name>app_finished</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>app_finished</comm_type>
+		</signal>
+
+		<signal>
+			<name>led</name>
+			<width>1</width>
+			<port>output</port>
+			<comm_type>external</comm_type>
+			<array>NUM_LED</array>
+		</signal>
+
+	</dec_ip>
+</rvx>
