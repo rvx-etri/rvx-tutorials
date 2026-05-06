@@ -14,13 +14,14 @@
 #include "npx_tensor.h"
 #include "npx_dvs.h"
 
-npx_rawinput_t *npx_load_sample_matrix(const char *filename, texpar_list_t *option_list);
-npx_rawinput_t *npx_load_mnist_dataset(const char *filename);
-npx_rawinput_t *npx_load_cifar10_dataset(const char *filename);
-npx_rawinput_t *npx_load_dvsgesture_dataset(const char *filename);
-npx_rawinput_t *npx_load_channelresponse_dataset(const char *filename);
-npx_rawinput_t *npx_load_speechcommands_dataset(const char *filename);
+static npx_rawinput_t *npx_load_sample_matrix(const char *filename, texpar_list_t *option_list);
+static npx_rawinput_t *npx_load_mnist_dataset(const char *filename);
+static npx_rawinput_t *npx_load_cifar10_dataset(const char *filename);
+static npx_rawinput_t *npx_load_dvsgesture_dataset(const char *filename);
+static npx_rawinput_t *npx_load_channelresponse_dataset(const char *filename);
+static npx_rawinput_t *npx_load_speechcommands_dataset(const char *filename);
 
+__attribute__((weak))
 npx_rawinput_t *npx_load_sample(const char *filename, const char *pre_fname)
 {
   texpar_list_t *section_list = texpar_read_file_with_section(pre_fname);

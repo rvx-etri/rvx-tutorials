@@ -15,12 +15,13 @@
 #include "npx_waveform.h"
 #include "npx_profiling.h"
 
-npx_layerio_tsseq_t *npx_mnist_preprocess(const npx_network_t *net, NpxTensorInfo *input, texpar_list_t *option_list);
-npx_layerio_tsseq_t *npx_dvsgesture_preprocess(const npx_network_t *net, NpxTensorInfo *input, texpar_list_t *option_list);
-npx_layerio_tsseq_t *npx_waveform_preprocess(const npx_network_t *net, NpxTensorInfo *input, texpar_list_t *option_list);
+static npx_layerio_tsseq_t *npx_mnist_preprocess(const npx_network_t *net, NpxTensorInfo *input, texpar_list_t *option_list);
+static npx_layerio_tsseq_t *npx_dvsgesture_preprocess(const npx_network_t *net, NpxTensorInfo *input, texpar_list_t *option_list);
+static npx_layerio_tsseq_t *npx_waveform_preprocess(const npx_network_t *net, NpxTensorInfo *input, texpar_list_t *option_list);
 static NpxTensorInfo *generate_single_step_by_lfsr(const NpxTensorInfo *input);
 static NpxTensorInfo *generate_single_step(const NpxTensorInfo *input, const char *step_generation);
 
+__attribute__((weak))
 npx_layerio_tsseq_t *npx_preprocess(const char *pre_fname, const npx_network_t *net, const NpxTensorInfo *input, float input_scale)
 {
   NPX_PROFILING_START();

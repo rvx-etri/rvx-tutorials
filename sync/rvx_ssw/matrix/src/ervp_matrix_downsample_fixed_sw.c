@@ -13,7 +13,10 @@ static inline void _matrix_downsample_fixed_each_sw(const ErvpMatrixInfo *input_
   switch(downsample_option.br.downsample_mode)
   {
     case DOWNSAMPLE_TOPLEFT:
-      result = matrix_read_fixed_element(input_info, row_index_dd, col_index_dd);
+      {
+        result = matrix_read_fixed_element(input_info, row_index_dd, col_index_dd);
+        matrix_write_fixed_element(output_info, o_row_index, o_col_index, result);
+      }
       break;
     case DOWNSAMPLE_MAX:
       {
