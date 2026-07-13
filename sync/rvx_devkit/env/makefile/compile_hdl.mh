@@ -78,7 +78,7 @@ _view:
 	@${PYTHON3_CMD} ${RVX_ENV}/util/simulate_rtl.py -smt ${RTL_SIMULATOR} -op view
 
 _check:
-	@${PYTHON3_CMD} ${RVX_UTIL_HOME}/analyze_hdlsim_log.py -tool ${RTL_SIMULATOR} -i ${CURDIR}
+	@${PYTHON3_CMD} ${RVX_ENV}/util/analyze_hdlsim_log.py -tool ${RTL_SIMULATOR} -i ${CURDIR}
 
 export_common_rtl:
 	@${PYTHON3_CMD} ${RVX_UTIL_HOME}/export_files.py -s $(SRC_FILE_LIST) $(LIB_DIR_LIST) $(SRC_DIR_LIST) -ext .v .sv .vhd .vhdl -o ${EXPORT_DIR}/src

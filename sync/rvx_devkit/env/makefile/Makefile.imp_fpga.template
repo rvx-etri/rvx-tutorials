@@ -48,9 +48,9 @@ BUILD_MODE ?= debug
 
 ENGINE_WS ?= $(call absolute_path,${PLATFORM_DIR}/..)
 ENGINE_TARGET=imp_fpga
-ENGINE_USER_CMD_LIST=path clean project open_project imp reimp check_imp program program_flash dump check_dumped_image app_list verify_apps run_verify
+ENGINE_USER_CMD_LIST=path clean project open_project imp reimp check_imp program program_flash dump check_dumped_image app_list verify_apps run_verify dump_flash_image
 ENGINE_USER_CMD_ADV_LIST=ila ila_clean manual_top
-ENGINE_SYSTEM_CMD_LIST=module top pll info xci tcl build after_build clean_build run_ocd connect_ocd printf mcs run flash __project __imp
+ENGINE_SYSTEM_CMD_LIST=module top pll info xci tcl build after_build clean_build run_ocd connect_ocd printf mcs run app_flash __project __imp gen_flash_script
 ENGINE_PARA= -p ${PLATFORM_NAME} -a ${APP_NAME} -tic ${TARGET_IMP_CLASS} -bm ${BUILD_MODE} -imp_dir ${CURDIR} -o ${OUTPUT_FILE}
 MAKEFILE_USER_CMD_LIST=test ocd telnet mcom
 MAKEFILE_USER_CMD_ADV_LIST=freeze
@@ -97,8 +97,11 @@ $(addsuffix .verify, ${APP_LIST}):%.verify:
 
 $(addsuffix .all, ${APP_LIST}):%.all: %.rerun
 
-$(addsuffix .flash, ${APP_LIST}):%.flash: %
-	@make --no-print-directory flash APP_NAME=$(*) BUILD_MODE=$(BUILD_MODE)
+$(addsuffix .gen_flash_script, ${APP_LIST}):%.gen_flash_script: %
+	@make --no-print-directory gen_flash_script APP_NAME=$(*) BUILD_MODE=$(BUILD_MODE)
+
+$(addsuffix .flash, ${APP_LIST}):%.flash: % %.gen_flash_script
+	@make --no-print-directory app_flash APP_NAME=$(*) BUILD_MODE=$(BUILD_MODE)
 
 $(addsuffix .import_run, ${APP_LIST}):%.import_run:
 	@cd ${PLATFORM_DIR}/app && make --no-print-directory $(*).import_app

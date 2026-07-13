@@ -47,7 +47,6 @@ remote_build_result_filename = 'result.tar.gz'
 remote_sim_rtl_filename = 'sim_rtl.tar.gz'
 remote_imp_fpga_filename = 'imp_fpga.tar.gz'
 remote_arch_filename = 'arch.tar.gz'
-#remote_header_filename = 'header.tar.gz'
 
 #######################################################################################
 
@@ -139,6 +138,20 @@ class RvxWorkspace():
   @staticmethod
   def _get_elf_filename(platform_name:str, app_name:str, target_imp_class:str, build_mode:str):
     return f'{app_name}.{platform_name}.elf'
+
+  # relative address
+  @staticmethod
+  def _get_flash_image_name(platform_name:str, app_name:str, target_imp_class:str, imp_instance_path:Path):
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
+    return f'{platform_name}.{target_imp_class}.{app_name}.{today}'
+
+  @staticmethod
+  def _get_dump_flash_image_script_path(imp_instance_path:Path):
+    return imp_instance_path / f'dump_flash_image.tcl'
+  
+  @staticmethod
+  def _get_program_flash_image_script_path(imp_instance_path:Path):
+    return imp_instance_path / f'program_flash_image_wo_rvx.tcl'
   
   def _get_build_path(self, platform_name:str, app_name:str, target_imp_class:str, build_mode:str):
     build_target = RvxWorkspace._get_build_target(target_imp_class,build_mode)
@@ -254,7 +267,7 @@ class RvxWorkspace():
     for compile_target_with_var in system_compile_list.read_text().split('\n'):
       if compile_target_with_var:
         var, compile_target = compile_target_with_var.split(',')
-        if get_makefile_var('USE_FAKEFILE', build_path)=='true':
+        if get_makefile_var(var, build_path)=='true':
           compile_list.append(compile_target)
     return compile_list
 
@@ -410,6 +423,15 @@ class RvxWorkspace():
       verify_path.touch()
 
       if not compile_correctly and self.config.is_local:
+        self.devkit.add_new_job('app_build_analysis', self.config.is_local, 'start')
+        analyze_build_log_file = self._get_env_file('util', 'analyze_build_log.py')
+        build_log_path = self.devkit.engine_log.log_path / 'rvx_app_build.log'
+        analyze_log_file = self.devkit.engine_log.log_path / 'rvx_app_build_analysis.log'
+        #cmd = f'{self.config.python3_cmd} {analyze_build_log_file} -i {build_log_path} -o {analyze_log_file}'
+        cmd = f'{self.config.python3_cmd} {analyze_build_log_file} -i {build_log_path}'
+        shell_result = log_shell_cmd(cmd, stderr_as_stdout=True)
+        self.devkit.add_process_log(shell_result, is_user=True)
+        self.devkit.check_log(True)
         assert 0, 'compile_wrong'
 
       # make previous
@@ -902,7 +924,6 @@ class RvxWorkspace():
   def platform_syn_arch_finalize(self, platform_name:str):
     platform_path = self._get_platform_path(platform_name)
     self.devkit.get_remote_handler().extract_tar_file(f'{platform_name}.{remote_arch_filename}', '.', platform_path)
-    #self.devkit.get_remote_handler().extract_tar_file(f'{platform_name}.{remote_header_filename}', '.', platform_path)
 
   def platform_syn_request(self, platform_name:str):
     assert platform_name
@@ -911,7 +932,6 @@ class RvxWorkspace():
   def platform_syn_check(self, platform_name:str):
     assert platform_name
     status_list = ( \
-                 #( True, f'{platform_name}.{remote_header_filename}', str(100)),
                  ( True, PurePosixPath('platform')/platform_name/'arch'/'xml'/'elaborated.xml', str(90)),
                  ( True, PurePosixPath('platform')/platform_name/'arch'/'xml'/'restructured.xml', str(50)),
                  ( True, PurePosixPath('platform')/platform_name/'arch'/'xml'/'synthesized.xml', str(20)),
@@ -1513,20 +1533,6 @@ class RvxWorkspace():
                    ('JTAG_KHZ', jtag_khz))
     configure_template_file(template_file, output_file, config_list)
 
-    # sdram
-    if 'INCLUDE_SDRAM' in hw_define_dict:
-      template_file = self._get_env_file('ocd', 'set_sdram_config.tcl.template')
-      output_file = imp_instance_path / 'set_sdram_config.tcl'
-      sdram_info = imp_dict.get('sdram')
-      if (not output_file.is_file()) and sdram_info:
-        clk_pol, clk_skew, cell_config, refresh_cycle, delay_config = sdram_info.split(':')
-        config_list = (('CLK_POL', clk_pol),
-                       ('CLK_SKEW', clk_skew),
-                       ('CELL_CONFIG', cell_config),
-                       ('REFRESH_CYCLE', refresh_cycle),
-                       ('DELAY_CONFIG', delay_config))
-        configure_template_file(template_file, output_file, config_list)
-
   def imp_fpga_xci(self, platform_name:str, target_imp_class:str, imp_instance_path:Path):
     self.__check_fpga_name(target_imp_class)
     assert imp_instance_path.is_dir(), imp_instance_path
@@ -1603,11 +1609,11 @@ class RvxWorkspace():
   def imp_fpga_run(self, platform_name:str, app_name:str, target_imp_class:str, build_mode:str, imp_instance_path:Path):
     assert imp_instance_path.is_dir(), imp_instance_path
     #
-    if is_linux and (not is_process_running('minicom')):
-      self.imp_fpga_printf(target_imp_class, imp_instance_path)
-    #
     self.imp_fpga_build(platform_name, app_name, target_imp_class, build_mode)
     self.imp_fpga_after_build(platform_name, app_name, target_imp_class, build_mode, imp_instance_path)
+    #
+    if is_linux and (not is_process_running('minicom')):
+      self.imp_fpga_printf(target_imp_class, imp_instance_path, asserts_when_error=False)
     #
     script = imp_instance_path / f'run_{app_name}.tcl'
     assert script.is_file(), script
@@ -1616,7 +1622,7 @@ class RvxWorkspace():
     cmd += f' -c \"source {PurePosixPath(script)}; exit\"'
     run_shell_cmd(cmd, imp_instance_path)
 
-  def imp_fpga_flash(self, platform_name:str, app_name:str, target_imp_class:str, build_mode:str, imp_instance_path:Path):
+  def imp_fpga_app_flash(self, platform_name:str, app_name:str, target_imp_class:str, build_mode:str, imp_instance_path:Path):
     assert imp_instance_path.is_dir(), imp_instance_path
     #self.imp_fpga_build(platform_name, 'flash_server', target_imp_class, build_mode) # bug
     #self.imp_fpga_after_build(platform_name, 'flash_server', target_imp_class, build_mode, imp_instance_path)
@@ -1630,6 +1636,21 @@ class RvxWorkspace():
     cmd = self._get_fpga_run_cmd(target_imp_class, imp_instance_path)
     cmd += f' -c \"source {script}; exit\"'
     run_shell_cmd(cmd, imp_instance_path)
+  
+  def imp_fpga_gen_flash_script(self, platform_name:str, app_name:str, target_imp_class:str, imp_instance_path:Path):
+    fpga_info_dict = self.imp_class_info.get_fpga_info(target_imp_class)
+
+    template_file = self._get_env_file('xilinx', 'dump_flash_image.tcl.template')
+    output_file = self._get_dump_flash_image_script_path(imp_instance_path)
+    config_list = (('FLASH_IMAGE_FILENAME', str(self._get_flash_image_name(platform_name, app_name, target_imp_class, imp_instance_path))),)
+    configure_template_file(template_file, output_file, config_list)
+
+    template_file = self._get_env_file('xilinx', 'program_flash_image.tcl.template')
+    output_file = self._get_program_flash_image_script_path(imp_instance_path)
+    config_list = (('FLASH_IMAGE_FILENAME', str(self._get_flash_image_name(platform_name, app_name, target_imp_class, imp_instance_path))),
+                   ('CFG_MEM', fpga_info_dict['cfg_mem']),
+                   ('FLASH_INTERFACE_TYPE', fpga_info_dict['flash_interface_type']))
+    configure_template_file(template_file, output_file, config_list)
 
   def imp_fpga___project(self, platform_name:str, target_imp_class:str, imp_instance_path:Path):
     self.imp_fpga_xci(platform_name, target_imp_class, imp_instance_path)
@@ -1800,6 +1821,7 @@ class RvxWorkspace():
     copy_file(imp_instance_path/'vivado.log', vivado_imp_log)
     copy_file(imp_instance_path/'set_path.tcl', RvxWorkspace.imp_fpga_result_path(imp_instance_path))
     copy_file(self.platform_file(platform_name), RvxWorkspace.imp_fpga_result_path(imp_instance_path))
+    copy_directory(self._get_arch_path(platform_name), RvxWorkspace.imp_fpga_result_path(imp_instance_path) / self._get_arch_path(platform_name).name )
     self.imp_fpga_check_imp(imp_instance_path)    
 
   def imp_fpga_imp(self, platform_name:str, target_imp_class:str, imp_instance_path:Path):
@@ -1847,7 +1869,7 @@ class RvxWorkspace():
 
     vivado_imp_log = RvxWorkspace.imp_fpga_imp_log(imp_instance_path)
     if vivado_imp_log.is_file():
-      analyze_vivado_log_file = self.devkit.get_utility_file('analyze_vivado_log.py')
+      analyze_vivado_log_file = self._get_env_file('util', 'analyze_vivado_log.py')
       cmd = f'{self.config.python3_cmd} {analyze_vivado_log_file} -i {vivado_imp_log} -o {result_path} -op all'
       run_shell_cmd(cmd,result_path)
 
@@ -1878,13 +1900,13 @@ class RvxWorkspace():
   def imp_fpga_imp_finalize(self, imp_instance_path:Path):
     return
 
-  def imp_fpga_program(self, target_imp_class:str, imp_instance_path:Path):
+  def imp_fpga_program(self, platform_name:str, target_imp_class:str, imp_instance_path:Path):
     if not self.imp_fpga_set_path_path(imp_instance_path).is_file():
       self.imp_fpga_path(platform_name, target_imp_class, imp_instance_path)
     execute_shell_cmd('vivado -mode batch -source {0}'.format(self.devkit.get_env_path('xilinx','program_fpga.tcl')),imp_instance_path)
   def imp_fpga_mcs(self, imp_instance_path:Path):
     execute_shell_cmd('vivado -mode batch -source ./gen_mcs.tcl',imp_instance_path)
-  def imp_fpga_program_flash(self, target_imp_class:str, imp_instance_path:Path):
+  def imp_fpga_program_flash(self, platform_name:str, target_imp_class:str, imp_instance_path:Path):
     if not self.imp_fpga_set_path_path(imp_instance_path).is_file():
       self.imp_fpga_path(platform_name, target_imp_class, imp_instance_path)
     execute_shell_cmd('vivado -mode batch -source {0}'.format(self.devkit.get_env_path('xilinx','program_fpga_flash.tcl')),imp_instance_path)
@@ -1923,7 +1945,7 @@ class RvxWorkspace():
     ila_result_path = self.__get_ila_result_path(imp_instance_path)
     remove_directory(ila_result_path)
 
-  def imp_fpga_printf(self, target_imp_class:str, imp_instance_path:Path):
+  def imp_fpga_printf(self, target_imp_class:str, imp_instance_path:Path, asserts_when_error=True):
     imp_dict = self.imp_class_info.get_imp_class_info(target_imp_class)
     if is_linux:
       self.kill_minicom_if_exsit()
@@ -1943,7 +1965,8 @@ class RvxWorkspace():
           continue
         target_ttyusb = ttyusb
         break
-      assert target_ttyusb
+      if asserts_when_error:
+        assert target_ttyusb
       if self.config.minicom_as_file:
         minicom_output_path = Path(self.config.minicom_as_file).absolute()
         cmd = f'minicom -D {target_ttyusb} -C {minicom_output_path}'
@@ -1953,7 +1976,7 @@ class RvxWorkspace():
       if self.devkit.called_by_gui or self.config.use_terminal_for_printf:
         execute_shell_cmd_with_terminal(cmd, imp_instance_path, self.config.python3_cmd, self.config.utility_path)
       else:
-        run_shell_cmd(cmd, imp_instance_path)
+        run_shell_cmd(cmd, imp_instance_path, asserts_when_error=asserts_when_error)
     else:
       execute_shell_cmd('devmgmt.msc', background=True)
       execute_shell_cmd('putty.exe', background=True)
@@ -2063,6 +2086,14 @@ class RvxWorkspace():
 
     #
     self.uncompress_dump(imp_instance_path)
+
+  def imp_fpga_dump_flash_image(self, platform_name:str, target_imp_class:str, imp_instance_path:Path):
+    if not self.imp_fpga_set_path_path(imp_instance_path).is_file():
+      self.imp_fpga_path(platform_name, target_imp_class, imp_instance_path)
+    dump_flash_image_script_path = self._get_dump_flash_image_script_path(imp_instance_path)
+    assert dump_flash_image_script_path.is_file()
+    execute_shell_cmd('vivado -mode batch -source {0}'.format(dump_flash_image_script_path),imp_instance_path)
+
     
   def imp_fpga_check_dumped_image(self, target_imp_class:str, imp_instance_path:Path):
     dump_dir = imp_instance_path / 'dump'

@@ -1,0 +1,175 @@
+#include "ervp_malloc.h"
+#include "ervp_printf.h"
+
+#include "rnn_layer.h"
+#include "connected_layer.h"
+#include "utils.h"
+#include "blas.h"
+#include "gemm.h"
+
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+
+static void increment_layer(layer *l, int steps)
+{
+    int num = l->outputs*l->batch*steps;
+    l->output += num;
+    l->delta += num;
+    l->x += num;
+    l->x_norm += num;
+}
+
+layer make_rnn_layer(int batch, int inputs, int hidden, int outputs, int steps, ACTIVATION activation, int batch_normalize, int log)
+{
+    printf("RNN Layer: %d inputs, %d outputs\n", inputs, outputs);
+    batch = batch / steps;
+    layer l = { (LAYER_TYPE)0 };
+    l.batch = batch;
+    l.type = RNN;
+    l.steps = steps;
+    l.hidden = hidden;
+    l.inputs = inputs;
+    l.out_w = 1;
+    l.out_h = 1;
+    l.out_c = outputs;
+
+    l.state = (float*)calloc(batch * hidden * (steps + 1), sizeof(float));
+
+    l.input_layer = (layer*)calloc(1, sizeof(layer));
+    printf("\t\t");
+    *(l.input_layer) = make_connected_layer(batch, steps, inputs, hidden, activation, batch_normalize);
+    l.input_layer->batch = batch;
+    if (l.workspace_size < l.input_layer->workspace_size) l.workspace_size = l.input_layer->workspace_size;
+
+    l.self_layer = (layer*)calloc(1, sizeof(layer));
+    printf("\t\t");
+    *(l.self_layer) = make_connected_layer(batch, steps, hidden, hidden, (log==2)?LOGGY:(log==1?LOGISTIC:activation), batch_normalize);
+    l.self_layer->batch = batch;
+    if (l.workspace_size < l.self_layer->workspace_size) l.workspace_size = l.self_layer->workspace_size;
+
+    l.output_layer = (layer*)calloc(1, sizeof(layer));
+    printf("\t\t");
+    *(l.output_layer) = make_connected_layer(batch, steps, hidden, outputs, activation, batch_normalize);
+    l.output_layer->batch = batch;
+    if (l.workspace_size < l.output_layer->workspace_size) l.workspace_size = l.output_layer->workspace_size;
+
+    l.outputs = outputs;
+    l.output = l.output_layer->output;
+    l.delta = l.output_layer->delta;
+
+    l.forward = forward_rnn_layer;
+#ifdef USE_BACKWARD_LAYER
+    l.backward = backward_rnn_layer;
+#else
+    l.backward = 0;
+#endif
+#ifdef USE_UPDATE_LAYER
+    l.update = update_rnn_layer;
+#else
+    l.update = 0;
+#endif
+
+    return l;
+}
+
+void update_rnn_layer(layer l, int batch, float learning_rate, float momentum, float decay)
+{
+    update_connected_layer(*(l.input_layer), batch, learning_rate, momentum, decay);
+    update_connected_layer(*(l.self_layer), batch, learning_rate, momentum, decay);
+    update_connected_layer(*(l.output_layer), batch, learning_rate, momentum, decay);
+}
+
+void forward_rnn_layer(layer l, network_state state)
+{
+    network_state s = {0};
+    s.train = state.train;
+    s.workspace = state.workspace;
+    int i;
+    layer input_layer = *(l.input_layer);
+    layer self_layer = *(l.self_layer);
+    layer output_layer = *(l.output_layer);
+
+    fill_cpu(l.outputs * l.batch * l.steps, 0, output_layer.delta, 1);
+    fill_cpu(l.hidden * l.batch * l.steps, 0, self_layer.delta, 1);
+    fill_cpu(l.hidden * l.batch * l.steps, 0, input_layer.delta, 1);
+    if(state.train) fill_cpu(l.hidden * l.batch, 0, l.state, 1);
+
+    for (i = 0; i < l.steps; ++i) {
+
+        s.input = state.input;
+        forward_connected_layer(input_layer, s);
+
+        s.input = l.state;
+        forward_connected_layer(self_layer, s);
+
+        float *old_state = l.state;
+        if(state.train) l.state += l.hidden*l.batch;
+        if(l.shortcut){
+            copy_cpu(l.hidden * l.batch, old_state, 1, l.state, 1);
+        }else{
+            fill_cpu(l.hidden * l.batch, 0, l.state, 1);
+        }
+        axpy_cpu(l.hidden * l.batch, 1, input_layer.output, 1, l.state, 1);
+        axpy_cpu(l.hidden * l.batch, 1, self_layer.output, 1, l.state, 1);
+
+        s.input = l.state;
+        forward_connected_layer(output_layer, s);
+
+        state.input += l.inputs*l.batch;
+        increment_layer(&input_layer, 1);
+        increment_layer(&self_layer, 1);
+        increment_layer(&output_layer, 1);
+    }
+}
+
+void backward_rnn_layer(layer l, network_state state)
+{
+    network_state s = {0};
+    s.train = state.train;
+    s.workspace = state.workspace;
+    int i;
+    layer input_layer = *(l.input_layer);
+    layer self_layer = *(l.self_layer);
+    layer output_layer = *(l.output_layer);
+
+    increment_layer(&input_layer, l.steps-1);
+    increment_layer(&self_layer, l.steps-1);
+    increment_layer(&output_layer, l.steps-1);
+
+    l.state += l.hidden*l.batch*l.steps;
+    for (i = l.steps-1; i >= 0; --i) {
+        copy_cpu(l.hidden * l.batch, input_layer.output, 1, l.state, 1);
+        axpy_cpu(l.hidden * l.batch, 1, self_layer.output, 1, l.state, 1);
+
+        s.input = l.state;
+        s.delta = self_layer.delta;
+        backward_connected_layer(output_layer, s);
+
+        l.state -= l.hidden*l.batch;
+        /*
+           if(i > 0){
+           copy_cpu(l.hidden * l.batch, input_layer.output - l.hidden*l.batch, 1, l.state, 1);
+           axpy_cpu(l.hidden * l.batch, 1, self_layer.output - l.hidden*l.batch, 1, l.state, 1);
+           }else{
+           fill_cpu(l.hidden * l.batch, 0, l.state, 1);
+           }
+         */
+
+        s.input = l.state;
+        s.delta = self_layer.delta - l.hidden*l.batch;
+        if (i == 0) s.delta = 0;
+        backward_connected_layer(self_layer, s);
+
+        copy_cpu(l.hidden*l.batch, self_layer.delta, 1, input_layer.delta, 1);
+        if (i > 0 && l.shortcut) axpy_cpu(l.hidden*l.batch, 1, self_layer.delta, 1, self_layer.delta - l.hidden*l.batch, 1);
+        s.input = state.input + i*l.inputs*l.batch;
+        if(state.delta) s.delta = state.delta + i*l.inputs*l.batch;
+        else s.delta = 0;
+        backward_connected_layer(input_layer, s);
+
+        increment_layer(&input_layer, -1);
+        increment_layer(&self_layer, -1);
+        increment_layer(&output_layer, -1);
+    }
+}

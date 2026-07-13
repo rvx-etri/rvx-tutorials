@@ -7,6 +7,7 @@ from itertools import chain
 from collections import defaultdict
 
 from rvx_util import *
+from xml_util import *
 from verilog_generator import *
 from c_generator import *
 from tcl_generator import *
@@ -56,12 +57,14 @@ def divide_value_list(text:str):
   unassigned_list = [] 
   assigned_list = []
   modified_list = []
+  array_list = []
   for value in text.split(','):
     if '*' in value:
       assert ':' not in value, value
       value, size = value.split('*')
       size = int(size)
       assert size < 100, size
+      array_list.append((f'bw_{value}',size))
       for i in range(size):
         modified_list.append(f'{value}_{i:03}')
     else:
@@ -81,13 +84,14 @@ def divide_value_list(text:str):
       assigned_list.append((assign_info[0].strip(),recent_value))
     else:
       assert 0
-  return (unassigned_list, assigned_list)
+  return (unassigned_list, assigned_list, array_list)
 
 class RegValue():
   def __init__(self, xml:XmlTree=None):
     self.name = None
     self.assigned_list = []
     self.unassigned_list = []
+    self.array_list = []
     self.bitwidth = None
     self.default_value = 0
     self.attrib = dict()
@@ -96,9 +100,10 @@ class RegValue():
       self.name = xml.find('name').text
       self.attrib = xml.attrib.copy()
       for formatted_text in xml.findall('assign'):
-        unassigned_list, assigned_list = divide_value_list(formatted_text.text)
+        unassigned_list, assigned_list, array_list = divide_value_list(formatted_text.text)
         self.unassigned_list += unassigned_list
         self.assigned_list += assigned_list
+        self.array_list += array_list
       self.bitwidth = set_from_xml_element(xml, 'bitwidth', int)
       self.default_value = set_from_xml_element(xml, 'default_value', eval, 0)
 
@@ -166,6 +171,9 @@ class RegValue():
     # value
     for name, value in self.assigned_list:
       append_child_xml_element(xml_regvalue, 'assign', f'{name}:{value}')
+    # size
+    for name, value in self.array_list:
+      append_child_xml_element(xml_regvalue, 'assign', f'{name}:{value}')
     return xml_regvalue
   
   def export_define_as_xml(self, use_reduced_name:bool):
@@ -184,6 +192,10 @@ class RegValue():
     for name, value in self.assigned_list:
       xml_element = generate_define_xml_element(f'{converted_name}_{name}',value,'dec')
       xml_group.append(xml_element)
+    # size
+    for name, value in self.array_list:
+      xml_element = generate_define_xml_element(f'{converted_name}_{name}',value,'dec')
+      xml_group.append(xml_element)
     return xml_group
 
   def export_memorymap_as_xml(self, use_reduced_name:bool):
@@ -196,6 +208,10 @@ class RegValue():
     xml_group.append(xml_element)
     # value
     for name, value in self.assigned_list:
+      xml_element = generate_comment_xml_elemenet(f'{converted_name.upper()}_{name.upper()} {value}')
+      xml_group.append(xml_element)
+    # size
+    for name, value in self.array_list:
       xml_element = generate_comment_xml_elemenet(f'{converted_name.upper()}_{name.upper()} {value}')
       xml_group.append(xml_element)
     return xml_group
@@ -214,7 +230,8 @@ class SubmoduleMemorymapOffset():
     if xml:
       self.name = xml.find('name').text
       for formatted_text in xml.findall('reg'):
-        unassigned_list, assigned_list = divide_value_list(formatted_text.text)
+        unassigned_list, assigned_list, array_list = divide_value_list(formatted_text.text)
+        assert array_list==[], array_list
         array_size = formatted_text.attrib.get('array_size')
 
         # unassigned_list
@@ -326,6 +343,11 @@ class SubmoduleMemorymapOffset():
         else:
           assert regvalue.bitwidth==reg_attrib_bitwidth, (reg_name,regvalue.bitwidth,reg_attrib_bitwidth)
         del(self.reg_attrib_dict[reg_name]['bitwidth'])
+
+      reg_attrib_default_value = self.reg_attrib_dict[reg_name].get('default_value')
+      if reg_attrib_default_value:
+        regvalue.default_value = int(reg_attrib_default_value)
+        del(self.reg_attrib_dict[reg_name]['default_value'])
 
     #
     for reg_name, assigned_value in self.assigned_list:

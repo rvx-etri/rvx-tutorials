@@ -1,2 +1,0 @@
-C_SRC += $(wildcard ${RVX_SSW_HOME}/api/hdmi/src.$(HW_ENV)/*.c)
-INCLUDES += -I${RVX_SSW_HOME}/api/hdmi/src.$(HW_ENV)

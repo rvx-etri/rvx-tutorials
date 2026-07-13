@@ -45,7 +45,7 @@ load_app_from_flash:
   be_unique:
     lw t1, 0(s7)
     bne x0, t1, start_app
-#ifdef INCLUDE_EXT_MRAM
+#ifdef INCLUDE_OFFCHIP_MRAM
     j set_ready
 #endif
   configure_spi:

@@ -1,6 +1,6 @@
 #include "ervp_mmiox1.h"
 #include "ervp_printf.h"
-#include "ervp_caching.h"
+#include "ervp_smart_flush.h"
 #include "ervp_delay.h"
 
 #include "dca_matrix_info.h"
@@ -33,7 +33,7 @@ void dca_matrix_mac_hwinfo_elaborate(dca_matrix_mac_hwpara_t *hwpara, dca_matrix
 	hwinfo->mmiox_info = NULL;
 }
 
-static void _dca_matrix_mac_request(const dca_matrix_mac_hwinfo_t *const hwinfo, int opcode, const ErvpMatrixInfo *ma_info, const ErvpMatrixInfo *mb_info, ErvpMatrixInfo *mc_info)
+static void _dca_matrix_mac_request(const dca_matrix_mac_hwinfo_t *const hwinfo, unsigned int opcode, const ErvpMatrixInfo *ma_info, const ErvpMatrixInfo *mb_info, ErvpMatrixInfo *mc_info)
 {
 	dca_matrix_mac_inst_t inst;
 
@@ -45,7 +45,7 @@ static void _dca_matrix_mac_request(const dca_matrix_mac_hwinfo_t *const hwinfo,
 	mmiox1_inst_push(hwinfo->mmiox_info, &inst, 1, 0);
 }
 
-ervp_hwtask_busy_fx_t dca_matrix_mac_start(ervp_mop_mapping_t *mop_mapping, const dca_matrix_mac_hwinfo_t *const hwinfo, int opcode, const ErvpMatrixInfo *ma_info, const ErvpMatrixInfo *mb_info, ErvpMatrixInfo *mc_info, unsigned int option_value)
+ervp_hwtask_busy_fx_t dca_matrix_mac_start(ervp_mop_mapping_t *mop_mapping, const dca_matrix_mac_hwinfo_t *const hwinfo, unsigned int opcode, const ErvpMatrixInfo *ma_info, const ErvpMatrixInfo *mb_info, ErvpMatrixInfo *mc_info, unsigned int option_value)
 {
 	ervp_mop_option_t mop_option;
 	mop_option.value = option_value;
@@ -55,7 +55,7 @@ ervp_hwtask_busy_fx_t dca_matrix_mac_start(ervp_mop_mapping_t *mop_mapping, cons
 	{
 		const int stride = mop_option.br.stride_m1 + 1;
 		ErvpMatrixInfo *temp = matrix_alloc(MATRIX_DATATYPE_SINT32, mc_info->num_row * stride, mc_info->num_col * stride, NULL);
-		cache_flush_smart(3, ma_info->addr, mb_info->addr, temp->addr);
+		trackedvar_smart_flush(3, ma_info->addr, mb_info->addr, temp->addr);
 		_dca_matrix_mac_request(hwinfo, opcode, ma_info, mb_info, temp);
 		dca_matrix_mac_wait(hwinfo);
 		hwtask_busy_fx = matrix_perform_postprocess_tf(mop_mapping, temp, mc_info, option_value);
@@ -70,21 +70,15 @@ ervp_hwtask_busy_fx_t dca_matrix_mac_start(ervp_mop_mapping_t *mop_mapping, cons
 	}
 	else
 	{
-		int opcode_with_acc = opcode;
+		unsigned int opcode_with_acc = opcode;
 		if (mop_option.br.acc)
 		{
 			opcode_with_acc &= (~DCA_MATRIX_MAC_OPCODE_INIT_ACC);
 			opcode_with_acc |= DCA_MATRIX_MAC_OPCODE_LOAD_ACC;
 		}
-		cache_flush_smart(3, ma_info->addr, mb_info->addr, mc_info->addr);
+		trackedvar_smart_flush(3, ma_info->addr, mb_info->addr, mc_info->addr);
 		_dca_matrix_mac_request(hwinfo, opcode_with_acc, ma_info, mb_info, mc_info);
 		hwtask_busy_fx = dca_matrix_mac_busy_fx(hwinfo);
 	}
 	return hwtask_busy_fx;
-}
-
-ervp_hwtask_busy_fx_t dca_matrix_scalar_mult_fixed(ervp_mop_mapping_t *mop_mapping, const dca_matrix_mac_hwinfo_t *const hwinfo, const ErvpMatrixInfo *ma_info, int scalar_value, ErvpMatrixInfo *mc_info, unsigned int option_value)
-{
-	scalar_matrix_value.value_signed = scalar_value;
-	return dca_matrix_mac_start(mop_mapping, hwinfo, DCA_MAC_SCALAR_MULT, ma_info, &scalar_matrix_info, mc_info, option_value);
 }

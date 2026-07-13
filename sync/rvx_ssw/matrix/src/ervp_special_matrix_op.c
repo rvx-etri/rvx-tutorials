@@ -1,8 +1,9 @@
+#include "platform_info.h"
 
 #include "ervp_matrix_element.h"
 #include "ervp_assert.h"
 #include "ervp_printf.h"
-
+#include "ervp_smart_flush.h"
 #include "ervp_special_matrix_op.h"
 
 static void _matrix_constant(ErvpMatrixInfo *result, const UNKNOWN_TYPE data)
@@ -11,9 +12,10 @@ static void _matrix_constant(ErvpMatrixInfo *result, const UNKNOWN_TYPE data)
   for (int i = 0; i < result->num_row; i = i + 1)
     for (int j = 0; j < result->num_col; j = j + 1)
       _matrix_write_element(result, i, j, data);
+  trackedvar_add(result->addr, 0);
 }
 
-ervp_hwtask_busy_fx_t _matrix_fill_fixed_sw(ervp_mop_mapping_t* mop_mapping, ErvpMatrixInfo *result, int32_t value)
+ervp_hwtask_busy_fx_t _matrix_fill_fixed_sw(ervp_mop_mapping_t *mop_mapping, ErvpMatrixInfo *result, int32_t value)
 {
   UNKNOWN_TYPE data;
   data.value_signed = value;
@@ -22,7 +24,7 @@ ervp_hwtask_busy_fx_t _matrix_fill_fixed_sw(ervp_mop_mapping_t* mop_mapping, Erv
   return NULL;
 }
 
-ervp_hwtask_busy_fx_t _matrix_fill_float_sw(ervp_mop_mapping_t* mop_mapping, ErvpMatrixInfo *result, float value)
+ervp_hwtask_busy_fx_t _matrix_fill_float_sw(ervp_mop_mapping_t *mop_mapping, ErvpMatrixInfo *result, float value)
 {
   UNKNOWN_TYPE data;
   data.value_f32 = value;
@@ -31,7 +33,7 @@ ervp_hwtask_busy_fx_t _matrix_fill_float_sw(ervp_mop_mapping_t* mop_mapping, Erv
   return NULL;
 }
 
-ervp_hwtask_busy_fx_t _matrix_identity_sw(ervp_mop_mapping_t* mop_mapping, ErvpMatrixInfo *result)
+ervp_hwtask_busy_fx_t _matrix_identity_sw(ervp_mop_mapping_t *mop_mapping, ErvpMatrixInfo *result)
 {
   UNKNOWN_TYPE value;
   int min_size;
@@ -47,5 +49,6 @@ ervp_hwtask_busy_fx_t _matrix_identity_sw(ervp_mop_mapping_t* mop_mapping, ErvpM
   for (int i = 0; i < min_size; i = i + 1)
     _matrix_write_element(result, i, i, value);
   result->is_binary = 1;
+  trackedvar_add(result->addr, 1);
   return NULL;
 }

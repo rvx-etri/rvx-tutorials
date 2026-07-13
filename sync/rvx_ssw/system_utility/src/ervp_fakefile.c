@@ -26,7 +26,7 @@ FAKEFILE *ffopen(const char *name, const char *mode)
   fp = fakefile_dict_find(name);
   if (strcmp(mode, "r") == 0)
   {
-    assert_msg(fp != NULL, "No file exist (%s)", name);
+    assert_must_msg(fp != NULL, "No file exist (%s)", name);
     fakefile_set_read_mode_(fp);
   }
   else if (strcmp(mode, "w") == 0)

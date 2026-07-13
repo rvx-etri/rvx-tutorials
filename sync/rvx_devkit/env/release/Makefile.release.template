@@ -75,7 +75,7 @@ init: _check_etri_home
 ########
 
 VERSION_INFO_FILE=${CURDIR}/version_info.xml
-RVX_ETRI_SUBDIR_LIST = local_setup imp_class_info
+RVX_ETRI_SUBDIR_LIST = local_setup
 
 fork_git: distclean rvx_init_subgit fork_rvx_etri_subdir tip_hello
 	make init_rvx_submodule_private init_rvx_hwlib_basic fork_rvx_hwlib_special fork_rvx_hwlib_chip
@@ -110,6 +110,13 @@ $(addprefix fork_rvx_etri_subdir., $(RVX_ETRI_SUBDIR_LIST)):fork_rvx_etri_subdir
 	-git add -f ./$(*)/Makefile
 	-git add -f ./$(*)/.gitignore
 	git add -A ./$(*)
+
+imp_class_info:
+	-rm -rf ./imp_class_info
+	cp -r ${RVX_ETRI_GIT_HOME}/imp_class_info .
+	git add -f ./imp_class_info/Makefile
+	cd ./imp_class_info && git checkout .
+	cd ./imp_class_info && make reimport RVX_ETRI_HOME=${RVX_ETRI_GIT_HOME}
 
 tip_hello:
 	mkdir -p ./platform

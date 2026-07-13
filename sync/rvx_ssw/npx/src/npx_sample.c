@@ -73,9 +73,9 @@ npx_rawinput_t *npx_load_mnist_dataset(const char *filename)
 
   npx_sample->type = MATRIX3D;
   npx_sample->tensor = npx_tensor_alloc_wo_data(3);
-  npx_sample->tensor->size[0] = input_w;
-  npx_sample->tensor->size[1] = input_h;
-  npx_sample->tensor->size[2] = input_c;
+  npx_tensor_set_size(npx_sample->tensor, 0, input_w);
+  npx_tensor_set_size(npx_sample->tensor, 1, input_h);
+  npx_tensor_set_size(npx_sample->tensor, 2, input_c);
   npx_tensor_set_datatype(npx_sample->tensor, MATRIX_DATATYPE_UINT08);
   npx_tensor_alloc_data(npx_sample->tensor);
 
@@ -110,9 +110,9 @@ npx_rawinput_t *npx_load_cifar10_dataset(const char *filename)
 
   npx_sample->type = MATRIX3D;
   npx_sample->tensor = npx_tensor_alloc_wo_data(3);
-  npx_sample->tensor->size[0] = input_w;
-  npx_sample->tensor->size[1] = input_h;
-  npx_sample->tensor->size[2] = input_c;
+  npx_tensor_set_size(npx_sample->tensor, 0, input_w);
+  npx_tensor_set_size(npx_sample->tensor, 1, input_h);
+  npx_tensor_set_size(npx_sample->tensor, 2, input_c);
   npx_tensor_set_datatype(npx_sample->tensor, MATRIX_DATATYPE_UINT08);
   npx_tensor_alloc_data(npx_sample->tensor);
 
@@ -147,8 +147,8 @@ npx_rawinput_t *npx_load_dvsgesture_dataset(const char *filename)
   assert(npx_sample);
   npx_sample->type = DVS;
   npx_sample->tensor = npx_tensor_alloc_wo_data(2);
-  npx_sample->tensor->size[0] = 4;
-  npx_sample->tensor->size[1] = (fp->head->size - 4) / sizeof(npx_dvs_t);
+  npx_tensor_set_size(npx_sample->tensor, 0, 4);
+  npx_tensor_set_size(npx_sample->tensor, 1, (fp->head->size - 4) / sizeof(npx_dvs_t));
   npx_tensor_set_datatype(npx_sample->tensor, MATRIX_DATATYPE_SINT32);
   npx_tensor_alloc_data(npx_sample->tensor);
 
@@ -179,9 +179,9 @@ npx_rawinput_t *npx_load_channelresponse_dataset(const char *filename)
 
   npx_sample->type = MATRIX3D;
   npx_sample->tensor = npx_tensor_alloc_wo_data(3);
-  npx_sample->tensor->size[0] = input_w;
-  npx_sample->tensor->size[1] = input_h;
-  npx_sample->tensor->size[2] = input_c;
+  npx_tensor_set_size(npx_sample->tensor, 0, input_w);
+  npx_tensor_set_size(npx_sample->tensor, 1, input_h);
+  npx_tensor_set_size(npx_sample->tensor, 2, input_c);
   npx_tensor_set_datatype(npx_sample->tensor, MATRIX_DATATYPE_UINT08);
   npx_tensor_alloc_data(npx_sample->tensor);
 
@@ -215,9 +215,9 @@ npx_rawinput_t *npx_load_speechcommands_dataset(const char *filename)
 
   npx_sample->type = WAVEFORM;
   npx_sample->tensor = npx_tensor_alloc_wo_data(3);
-  npx_sample->tensor->size[0] = waveform_length;
-  npx_sample->tensor->size[1] = 1;
-  npx_sample->tensor->size[2] = 1;
+  npx_tensor_set_size(npx_sample->tensor, 0, waveform_length);
+  npx_tensor_set_size(npx_sample->tensor, 1, 1);
+  npx_tensor_set_size(npx_sample->tensor, 2, 1);
   npx_tensor_set_datatype(npx_sample->tensor, MATRIX_DATATYPE_SINT16);
   npx_tensor_alloc_data(npx_sample->tensor);
 

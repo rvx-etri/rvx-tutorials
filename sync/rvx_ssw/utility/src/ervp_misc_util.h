@@ -29,6 +29,9 @@ void convert_value_to_bitvector(unsigned int value, char* bitvector);
 #define CLIP_UINT16(x) CLIP(x,0,65535)
 #define CLIP_SINT16(x) CLIP(x,-65536,65535)
 
+#define ALIGN_DOWN_POW2(x, a) (((unsigned int)(x)) & ~(((unsigned int)(a)) - 1))
+#define ALIGN_UP_POW2(x, a) ((((unsigned int)(x)) + (((unsigned int)(a)) - 1)) & ~(((unsigned int)(a)) - 1))
+
 static inline int is_function_pointer_valid(void* p)
 {
 	int valid = 1;

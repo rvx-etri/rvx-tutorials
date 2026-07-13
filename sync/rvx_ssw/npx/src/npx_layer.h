@@ -1,8 +1,6 @@
 #ifndef __NPX_LAYER_H__
 #define __NPX_LAYER_H__
 
-#include "platform_info.h"
-
 #include "ervp_printf.h"
 #include "npx_struct.h"
 
@@ -13,7 +11,7 @@ const char *npx_layer_type_to_str(npx_layer_type_t type);
 npx_layerio_tsseq_t *npx_layerio_tsseq_alloc(int timesteps);
 void npx_layerio_tsseq_free(npx_layerio_tsseq_t *p);
 
-npx_layerio_tsseq_t *npx_output_tsseq_alloc(int timesteps, const int *is_boundary, float scaled, int datatype, int num_dim, int *size_array);
+npx_layerio_tsseq_t *npx_output_tsseq_alloc(int timesteps, const int *is_boundary, float scaled, ervp_matrix_datatype_t datatype, int num_dim, npx_tensor_dim_size_t *size_array);
 int npx_layer_output_size(npx_layer_type_t layer_type, void *layer);
 int npx_layer_testvector_size(npx_layer_type_t layer_type, void *layer);
 

@@ -40,6 +40,8 @@ typedef struct
   int out_size[2];
   int out_is_quantized;
   int out_is_binary;
+  int out_maxvalue;
+  int out_datatype;
 } npx_layer2d_iodata_t;
 
 typedef struct
@@ -95,6 +97,7 @@ typedef struct
   int in_features;
   int out_features;
   NpxTensorInfo *weight_tensor;
+  ErvpMatrixInfo *transposed_weight_matrix;
 } npx_linear_layer_t;
 
 typedef struct

@@ -22,3 +22,7 @@
 #CFLAGS_RELEASE
 #CFLAGS_DEBUG
 #CFLAGS_PROFILE
+
+
+## DO NOT uncomment the lines below.
+#USE_GENERATED=true

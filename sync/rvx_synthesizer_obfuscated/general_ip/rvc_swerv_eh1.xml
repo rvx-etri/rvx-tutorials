@@ -1,0 +1,157 @@
+<?xml version="1.0" ?>
+<rvx>
+	<dec_ip>
+		<type>cpu_main</type>
+		<name>rvc_swerv_eh1</name>
+		<hdl_name>RVC_SWERV_EH1</hdl_name>
+		<unique>cpu_main</unique>
+		<essential>cpu_main</essential>
+		<def_parameter user_editable="False">
+			<name>RESET_VECTOR</name>
+			<value>0</value>
+		</def_parameter>
+		<def_parameter user_editable="False">
+			<name>ENABLE_EXCEPTIONS</name>
+			<value>1</value>
+		</def_parameter>
+		<def_parameter user_editable="False">
+			<name>ENABLE_INTERRUPTS</name>
+			<value>1</value>
+		</def_parameter>
+		<def_parameter user_editable="False">
+			<name>NUM_INTERRUPTS</name>
+			<value>1</value>
+    </def_parameter>
+
+		<cpu_info>
+			<define>
+				<name>include_cache</name>
+				<value>True</value>
+			</define>
+			<define>
+				<name>cache_line_size</name>
+				<value>16</value>
+			</define>
+		</cpu_info>
+
+		<signal>
+			<name>clk</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>#</comm_type>
+		</signal>
+
+		<signal>
+			<name>rstnn</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<signal>
+			<name>global_rstnn</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>global_rstnn</comm_type>
+		</signal>
+
+		<signal>
+			<name>interrupt_vector</name>
+			<width>NUM_INTERRUPTS</width>
+			<port>input</port>
+			<comm_type>core_interrupt_vector_#</comm_type>
+		</signal>
+
+		<signal>
+			<name>interrupt_out</name>
+			<width>1</width>
+			<port>output</port>
+			<comm_type>core_interrupt_group</comm_type>
+		</signal>
+
+		<reset_property>
+			<id>rstnn</id>
+			<type>asynch</type>
+			<type>negative</type>
+			<group>4</group>
+		</reset_property>
+
+		<core>
+			<sync>clk</sync>
+			<init>rstnn</init>
+		</core>
+
+		<interface>
+			<name>ifu</name>
+			<library_name>axi4</library_name>
+			<role>sender</role>
+			<comm_type>memory:inst</comm_type>
+			<parameter>
+				<id>bw_addr</id>
+				<value>32</value>
+			</parameter>
+			<parameter>
+				<id>bw_data</id>
+				<value>64</value>
+			</parameter>
+			<parameter>
+				<id>bw_tid</id>
+				<value>3</value>
+			</parameter>
+			<sync>clk</sync>
+			<init>rstnn</init>
+		</interface>
+
+		<interface>
+			<name>lsu</name>
+			<library_name>axi4</library_name>
+			<role>sender</role>
+			<comm_type>memory:all</comm_type>
+			<parameter>
+				<id>bw_addr</id>
+				<value>32</value>
+			</parameter>
+			<parameter>
+				<id>bw_data</id>
+				<value>64</value>
+			</parameter>
+			<parameter>
+				<id>bw_tid</id>
+				<value>4</value>
+			</parameter>
+			<sync>clk</sync>
+			<init>rstnn</init>
+    </interface>
+
+    <interface>
+			<name>sb</name>
+			<library_name>axi4</library_name>
+			<role>sender</role>
+			<comm_type>memory:data_c</comm_type>
+			<parameter>
+				<id>bw_addr</id>
+				<value>32</value>
+			</parameter>
+			<parameter>
+				<id>bw_data</id>
+				<value>64</value>
+			</parameter>
+			<parameter>
+				<id>bw_tid</id>
+				<value>1</value>
+			</parameter>
+			<sync>clk</sync>
+			<init>rstnn</init>
+    </interface>
+
+		<interface>
+			<name>pc</name>
+			<library_name>pc</library_name>
+			<hdl_prefix></hdl_prefix>
+			<role>sender</role>
+			<comm_type>pc</comm_type>
+			<sync>None</sync>
+			<init>None</init>
+		</interface>
+	</dec_ip>
+</rvx>
+

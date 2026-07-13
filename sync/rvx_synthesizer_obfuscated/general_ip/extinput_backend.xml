@@ -1,0 +1,191 @@
+<?xml version="1.0" ?>
+<rvx>
+	<dec_ip>
+		<name>extinput_backend</name>
+		<hdl_name>ERVP_EXTINPUT_BACKEND</hdl_name>
+
+    <def_parameter>
+			<name>BW_ADDR</name>
+			<value>32</value>
+		</def_parameter>
+    <def_parameter>
+			<name>BW_AXI_DATA</name>
+			<value>32</value>
+    </def_parameter>
+    <def_parameter>
+			<name>BW_CONFIG</name>
+			<value>1</value>
+    </def_parameter>
+    <def_parameter>
+			<name>BW_STATUS</name>
+			<value>1</value>
+    </def_parameter>
+    <def_parameter>
+			<name>BW_EXTINPUT</name>
+			<value>32</value>
+    </def_parameter>
+
+    <def_parameter>
+			<name>BW_BACKEND_CONFIG</name>
+      <value>0</value>
+      <virtual/>
+    </def_parameter>
+    <def_parameter>
+			<name>BW_BACKEND_STATUS</name>
+      <value>0</value>
+      <virtual/>
+    </def_parameter>
+		<def_parameter>
+			<name>INST_FIFO_DEPTH</name>
+      <value>4</value>
+      <virtual/>
+    </def_parameter>
+		<def_parameter>
+			<name>OUTPUT_FIFO_DEPTH</name>
+      <value>0</value>
+      <virtual/>
+    </def_parameter>
+
+    <signal>
+			<name>clk_system</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>clk_system</comm_type>
+    </signal>
+
+    <signal>
+			<name>tick_1us</name>
+			<width>1</width>
+			<port>input</port>
+			<comm_type>tick_1us</comm_type>
+		</signal>
+
+    <signal>
+			<name>clk</name>
+			<width>1</width>
+      <port>input</port>
+      <user_dependent/>
+		</signal>
+
+		<signal>
+			<name>rstnn</name>
+			<width>1</width>
+			<port>input</port>
+		</signal>
+
+		<reset_property>
+			<id>rstnn</id>
+			<type>asynch</type>
+			<type>negative</type>
+			<group>3</group>
+    </reset_property>
+
+    <core>
+			<sync>clk</sync>
+			<init>rstnn</init>
+		</core>
+
+		<interface>
+			<name>control</name>
+			<library_name>mmiox1</library_name>
+			<role>receiver</role>
+      <comm_type>memory:all</comm_type>
+      <parameter>
+        <id>bw_config</id>
+        <value>BW_CONFIG+BW_BACKEND_CONFIG</value>
+      </parameter>
+      <parameter>
+        <id>bw_status</id>
+        <value>BW_STATUS+BW_BACKEND_STATUS</value>
+      </parameter>
+      <parameter>
+        <id>bw_log</id>
+        <value>1</value>
+      </parameter>
+       <parameter>
+        <id>bw_inst</id>
+        <value>77</value>
+      </parameter>
+      <parameter>
+        <id>bw_input</id>
+        <value>1</value>
+      </parameter>
+      <parameter>
+        <id>bw_output</id>
+        <value>BW_EXTINPUT</value>
+      </parameter>
+      <parameter>
+        <id>config_default_value</id>
+        <value>0</value>
+      </parameter>
+      <parameter>
+        <id>log_fifo_depth</id>
+        <value>2</value>
+      </parameter>
+       <parameter>
+        <id>inst_fifo_depth</id>
+        <value>INST_FIFO_DEPTH</value>
+      </parameter>
+      <parameter>
+        <id>input_fifo_depth</id>
+        <value>0</value>
+      </parameter>
+      <parameter>
+        <id>output_fifo_depth</id>
+        <value>OUTPUT_FIFO_DEPTH</value>
+      </parameter>
+			<sync>clk</sync>
+			<init>rstnn</init>
+    </interface>
+
+    <signal>
+			<name>extinput_status</name>
+			<width>BW_STATUS</width>
+      <port>input</port>
+      <user_dependent/>
+    </signal>
+
+    <signal>
+			<name>extinput_clear</name>
+			<width>1</width>
+      <port>output</port>
+      <user_dependent/>
+    </signal>
+
+    <signal>
+			<name>extinput_enable</name>
+			<width>1</width>
+      <port>output</port>
+      <user_dependent/>
+    </signal>
+
+    <signal>
+			<name>extinput_start</name>
+			<width>1</width>
+      <port>output</port>
+      <user_dependent/>
+    </signal>
+
+    <signal>
+			<name>extinput_valid</name>
+			<width>1</width>
+      <port>input</port>
+      <user_dependent/>
+		</signal>
+
+		<signal>
+			<name>extinput_data</name>
+			<width>BW_EXTINPUT</width>
+      <port>input</port>
+      <user_dependent/>
+    </signal>
+
+    <signal>
+			<name>extinput_ready</name>
+			<width>1</width>
+      <port>output</port>
+      <user_dependent/>
+    </signal>
+
+	</dec_ip>
+</rvx>

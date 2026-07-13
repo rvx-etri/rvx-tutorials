@@ -59,14 +59,9 @@ static inline void disallow_interrupt_plic(){
 	clear_csr(mie, MIP_MEIP);
 }
 
-static inline void wait_flush(){
-  cache_temp = 0;
-}
-
 static inline void flush_cache()
 {
 	orca_flush_dcache_range((void *)0x0, (void *)0xFFFFFFFF);
-  wait_flush();
 }
 
 /*

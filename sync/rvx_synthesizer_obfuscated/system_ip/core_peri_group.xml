@@ -23,6 +23,10 @@
 			<name>NUM_GLOBAL_TAG</name>
 			<value>1</value>
 		</def_parameter>
+    <def_parameter>
+			<name>BW_LOCK_STATUS</name>
+			<value>16</value>
+		</def_parameter>
 
 		<signal>
 			<name>clk</name>
@@ -60,7 +64,7 @@
 
 		<signal>
 			<name>lock_status_list</name>
-			<width>NUM_LOCK</width>
+			<width>NUM_LOCK*BW_LOCK_STATUS</width>
 			<port>input</port>
 			<comm_type>lock_status_list</comm_type>
     </signal>

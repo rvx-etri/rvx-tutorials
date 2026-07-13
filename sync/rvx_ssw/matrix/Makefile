@@ -21,10 +21,13 @@ $(error source the source file in RVX_ETRI_HOME)
 endif
 
 HEADER_LIST=access
-OP3_LIST=add sub ewmult mult scalar_mult mac conv 
+OP3_LIST=add sub ewmult mult mac conv max min compare
 OP2_LIST=transpose downsample
 
-OP_LIST= ${OP3_LIST} ${OP2_LIST}
+BOTH_OP_LIST=${OP3_LIST} ${OP2_LIST}
+INT_ONLY_OP_LIST=asl asr
+
+OP_LIST= ${BOTH_OP_LIST} ${INT_ONLY_OP_LIST}
 
 gen: generate
 
@@ -41,11 +44,15 @@ $(addprefix generate_header., ${HEADER_LIST}):generate_header.%:
 
 generate_case: $(addprefix generate_case., ${OP_LIST})
 
-$(addprefix generate_case., ${OP_LIST}):generate_case.%:
+$(addprefix generate_case., ${BOTH_OP_LIST}):generate_case.%:
 	if [ -f ./template/ervp_matrix_$(*)_case.c.template ] ;	\
 	then \
 		python3 ${RVX_UTIL_HOME}/configure_template.py -i ./template/ervp_matrix_$(*)_case.c.template -o ./src/ervp_matrix_$(*)_float_sw.c -c OP_TYPE=$(*) CASE_NAME=float DATA_TYPE=float DATA_TYPE_UPPER=FLOAT; \
 		python3 ${RVX_UTIL_HOME}/configure_template.py -i ./template/ervp_matrix_$(*)_case.c.template -o ./src/ervp_matrix_$(*)_fixed_sw.c -c OP_TYPE=$(*) CASE_NAME=fixed DATA_TYPE=int DATA_TYPE_UPPER=FIXED; \
 	fi;
 
-generate_op: $(addprefix generate_op., ${OP_LIST})
+$(addprefix generate_case., ${INT_ONLY_OP_LIST}):generate_case.%:
+	if [ -f ./template/ervp_matrix_$(*)_case.c.template ] ;	\
+	then \
+		python3 ${RVX_UTIL_HOME}/configure_template.py -i ./template/ervp_matrix_$(*)_case.c.template -o ./src/ervp_matrix_$(*)_fixed_sw.c -c OP_TYPE=$(*) CASE_NAME=fixed DATA_TYPE=int DATA_TYPE_UPPER=FIXED; \
+	fi;

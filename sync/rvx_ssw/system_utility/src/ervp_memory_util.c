@@ -20,7 +20,7 @@ void print_memory_byte(uint8_t *array, int num)
 void print_memory_4byte(uint32_t *array, int num)
 {
 	int i;
-	assert_pointer_align(array,4);
+	assert_pointer_align(array, 4);
 	for (i = 0; i < num; i++)
 	{
 		if ((i & 3) == 0)
@@ -44,11 +44,11 @@ static void *memset_1byte(void *dst, int value, int num)
 
 static void *memset_4byte(void *dst, uint32_t value, int num)
 {
-	assert_pointer_align(dst,4);
+	assert_pointer_align(dst, 4);
 	unsigned int dst_addr = (unsigned int)dst;
 	const unsigned int dst_addr_end = ((unsigned int)dst) + (num << 2);
-	const uint8_t value_1byte = (value & 0xFF);
-	const uint32_t value_4byte = (value_1byte << 24) + (value_1byte << 16) + (value_1byte << 8) + (value_1byte);
+	const uint32_t value_4byte = (value & 0xFF) * 0x01010101;
+
 	while (dst_addr < dst_addr_end)
 	{
 		REG32(dst_addr) = value_4byte;
@@ -59,14 +59,15 @@ static void *memset_4byte(void *dst, uint32_t value, int num)
 
 void *memset_rvx(void *dst, int value, size_t num)
 {
+	assert(dst);
 	unsigned int dst_addr = (unsigned int)dst;
 	unsigned int num_prolog, num_body;
 
 	// prologue
-	num_prolog = 4 - (dst_addr & 0x3);
-	if (num_prolog != 4)
+	num_prolog = (4 - dst_addr) & 0x3;
+	if (num_prolog > 0)
 	{
-		memset_1byte((void *)dst_addr, value, num_prolog);
+		memset_1byte(dst, value, num_prolog);
 		dst_addr += num_prolog;
 		num -= num_prolog;
 	}
@@ -110,6 +111,8 @@ static void *memcpy_4byte(void *dst, const void *src, int num)
 
 void *memcpy_rvx(void *dst, const void *src, size_t num)
 {
+	assert(src);
+	assert(dst);
 	unsigned int src_addr = (unsigned int)src;
 	unsigned int dst_addr = (unsigned int)dst;
 	unsigned int num_prolog, num_body;

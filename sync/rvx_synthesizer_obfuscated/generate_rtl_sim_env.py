@@ -45,7 +45,7 @@ if __name__ == '__main__':
       line_list.append('include ${{RVX_HWLIB_HOME}}/core/{0}/env/set_sim_env.mh'.format(core_name))
 
   # library
-  hwlib_basic_list = ('timer','plic','fuse_box','florian','adc','c2c','extinput_backend')
+  hwlib_basic_list = ('timer','plic','fuse_box','florian','adc','c2c','extinput_backend','offchip_mram')
   hwlib_special_list = ('jpeg_encoder','jpegls_encoder','sdram','edge_video_system','vta','hbc1')
   hwlib_exception_list = ((('led_checker',),'peripheral/checker'),
                           (('tcaching',),'peripheral/tcu'),

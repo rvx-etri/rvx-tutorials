@@ -1,0 +1,5 @@
+DARKNET_SRC_DIR = ${RVX_SSW_HOME}/darknet/src
+
+include ${RVX_SSW_HOME}/text_parser/env/set_env.mh
+C_SRC += $(wildcard $(DARKNET_SRC_DIR)/*.c) 
+INCLUDES += -I$(DARKNET_SRC_DIR)

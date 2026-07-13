@@ -9,7 +9,6 @@ static const int _DCA_MAC_ALL_FROM_MEMORY = DCA_MATRIX_MAC_OPCODE_LSU0_REQ | DCA
 static const int DCA_MAC_ADD = DCA_MATRIX_MAC_OPCODE_ADDSUB | _DCA_MAC_ALL_FROM_MEMORY;
 static const int DCA_MAC_SUB = DCA_MATRIX_MAC_OPCODE_ADDSUB | DCA_MATRIX_MAC_OPCODE_RSRC_INV | _DCA_MAC_ALL_FROM_MEMORY;
 static const int DCA_MAC_EWMULT = DCA_MATRIX_MAC_OPCODE_EWMULT | _DCA_MAC_ALL_FROM_MEMORY;
-static const int DCA_MAC_SCALAR_MULT = DCA_MATRIX_MAC_OPCODE_EWMULT | DCA_MATRIX_MAC_OPCODE_RSRC_CONSTANT | _DCA_MAC_ALL_FROM_MEMORY;
 
 static const int DCA_MAC_MULT_COND = DCA_MATRIX_MAC_OPCODE_MULT_COND | _DCA_MAC_ALL_FROM_MEMORY;
 static const int DCA_MAC_MULT = DCA_MAC_MULT_COND | DCA_MATRIX_MAC_OPCODE_INIT_ACC;
@@ -63,7 +62,7 @@ static inline void dca_matrix_mac_wait(const dca_matrix_mac_hwinfo_t *const hwin
   hwtask_wait_complete(dca_matrix_mac_busy_fx(hwinfo));
 }
 
-ervp_hwtask_busy_fx_t dca_matrix_mac_start(ervp_mop_mapping_t *mop_mapping, const dca_matrix_mac_hwinfo_t *const hwinfo, int opcode, const ErvpMatrixInfo *ma_info, const ErvpMatrixInfo *mb_info, ErvpMatrixInfo *mc_info, unsigned int option_value);
+ervp_hwtask_busy_fx_t dca_matrix_mac_start(ervp_mop_mapping_t *mop_mapping, const dca_matrix_mac_hwinfo_t *const hwinfo, unsigned int opcode, const ErvpMatrixInfo *ma_info, const ErvpMatrixInfo *mb_info, ErvpMatrixInfo *mc_info, unsigned int option_value);
 
 static inline ervp_hwtask_busy_fx_t dca_matrix_add(ervp_mop_mapping_t *mop_mapping, const dca_matrix_mac_hwinfo_t *const hwinfo, const ErvpMatrixInfo *ma_info, const ErvpMatrixInfo *mb_info, ErvpMatrixInfo *mc_info, unsigned int option_value)
 {
@@ -84,7 +83,5 @@ static inline ervp_hwtask_busy_fx_t dca_matrix_mult(ervp_mop_mapping_t *mop_mapp
 {
   return dca_matrix_mac_start(mop_mapping, hwinfo, DCA_MAC_MULT, ma_info, mb_info, mc_info, option_value);
 }
-
-ervp_hwtask_busy_fx_t dca_matrix_scalar_mult_fixed(ervp_mop_mapping_t *mop_mapping, const dca_matrix_mac_hwinfo_t *const hwinfo, const ErvpMatrixInfo *ma_info, int scalar_value, ErvpMatrixInfo *mc_info, unsigned int option_value);
 
 #endif

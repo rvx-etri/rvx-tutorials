@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+<rvx>
+  <dec_ip>
+    <name>dca_top_module_template</name>
+
+    <include_header>munoc_network_include</include_header>
+
+    <signal>
+      <name>clk_core</name>
+      <width>1</width>
+      <port>input</port>
+      <comm_type>gclk_dca_core</comm_type>
+    </signal>
+
+    <signal>
+      <name>rstnn_core</name>
+      <width>1</width>
+      <port>input</port>
+    </signal>
+
+    <reset_property>
+      <id>rstnn_core</id>
+      <type>asynch</type>
+      <type>negative</type>
+      <group>3</group>
+    </reset_property>
+
+    <core>
+      <sync>clk_core</sync>
+      <init>rstnn_core</init>
+    </core>
+
+    <signal>
+      <name>clk_mmio</name>
+      <width>1</width>
+      <port>input</port>
+      <comm_type>gclk_dca_mmio</comm_type>
+    </signal>
+
+    <signal>
+      <name>rstnn_mmio</name>
+      <width>1</width>
+      <port>input</port>
+      <comm_type>rstnn_noc</comm_type>
+    </signal>
+
+  </dec_ip>
+</rvx>

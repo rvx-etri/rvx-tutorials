@@ -3,9 +3,11 @@
 
 #include "ervp_round_int.h"
 
+typedef uint32_t ervp_matrix_datatype_t;
+
 typedef union
 {
-  unsigned int value;
+  ervp_matrix_datatype_t value;
   struct
   {
     int8_t addr_lsa;
@@ -35,12 +37,12 @@ static inline int matrix_datatype_get_num_bits(int datatype)
 
 static inline int matrix_datatype_size(int datatype)
 {
-  return rshift_ru(matrix_datatype_get_num_bits(datatype),3);
+  return rshift_ru(matrix_datatype_get_num_bits(datatype), 3);
 }
 
 static inline int matrix_datatype_is_subbyte(int datatype)
 {
-  return (matrix_datatype_get_addr_lsa(datatype)<0);
+  return (matrix_datatype_get_addr_lsa(datatype) < 0);
 }
 
 static inline int matrix_datatype_is_float(int datatype)
@@ -60,8 +62,8 @@ static inline int matrix_datatype_is_signed(int datatype)
 static inline int matrix_datatype_get_lower_bound(int datatype)
 {
   int bound;
-  if(matrix_datatype_is_signed(datatype))
-    bound = -(1<<(matrix_datatype_get_num_bits(datatype)-1));
+  if (matrix_datatype_is_signed(datatype))
+    bound = -(1 << (matrix_datatype_get_num_bits(datatype) - 1));
   else
     bound = 0;
   return bound;
@@ -70,19 +72,19 @@ static inline int matrix_datatype_get_lower_bound(int datatype)
 static inline int matrix_datatype_get_upper_bound(int datatype)
 {
   int bound;
-  if(matrix_datatype_is_signed(datatype))
-    bound = (1<<(matrix_datatype_get_num_bits(datatype)-1))-1;
+  if (matrix_datatype_is_signed(datatype))
+    bound = (1 << (matrix_datatype_get_num_bits(datatype) - 1)) - 1;
   else
-    bound = (1<<matrix_datatype_get_num_bits(datatype))-1;
+    bound = (1 << matrix_datatype_get_num_bits(datatype)) - 1;
   return bound;
 }
 
-#define GET_MATRIX_CASE_TYPE(a, b, c) (((a)<<8) + ((b)<<8) + (c))
+#define GET_MATRIX_CASE_TYPE(a, b, c) (((a) << 8) + ((b) << 8) + (c))
 
 typedef union
 {
   unsigned int hex;
-	uint8_t br08;
+  uint8_t br08;
   uint16_t br16;
   uint32_t br32;
 

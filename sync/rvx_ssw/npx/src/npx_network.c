@@ -6,8 +6,10 @@
 #include "ervp_fakefile_system.h"
 #include "ervp_matrix.h"
 #include "ervp_matrix_element.h"
+#include "ervp_matrix_op_sw.h"
 #include "ervp_special_matrix_op.h"
 #include "ervp_assert.h"
+#include "ervp_smart_flush.h"
 
 #include <string.h>
 #include <stdint.h>
@@ -88,6 +90,9 @@ static void load_linear_weights(npx_linear_layer_t *layer, FAKEFILE *fp)
 {
   size_t num = npx_tensor_elements(layer->weight_tensor);
   read_data_aligned_by_4bytes(layer->weight_tensor->addr, matrix_datatype_size(layer->weight_tensor->datatype), num, fp);
+  ErvpMatrixInfo weight_matrix;
+  npx_tensor_to_matrix_info(layer->weight_tensor, &weight_matrix);
+  matrix_transpose_sw(&weight_matrix, layer->transposed_weight_matrix, 0);
 #if 0
   matrix_print(layer->weight_matrix);
 #endif
@@ -153,12 +158,14 @@ void npx_network_print(const npx_network_t *net)
 
 // state.output_tsseq is newly allocated but is not free
 __attribute__((weak))
-npx_layerio_tsseq_t *npx_foward_layers(npx_layer_compute_t **layer_compute_seq, const npx_layerio_tsseq_t *input_tsseq, int layer_start_index, int layer_end_index)
+npx_layerio_tsseq_t *
+npx_foward_layers(npx_layer_compute_t **layer_compute_seq, const npx_layerio_tsseq_t *input_tsseq, int layer_start_index, int layer_end_index)
 {
   npx_layerio_state_t state;
   state.input_tsseq = input_tsseq;
   state.output_tsseq = NULL;
 
+  trackedvar_track_start();
   for (int i = layer_start_index; i < layer_end_index; i++)
   {
     npx_layer_compute_t *layer_compute = layer_compute_seq[i];
@@ -172,11 +179,13 @@ npx_layerio_tsseq_t *npx_foward_layers(npx_layer_compute_t **layer_compute_seq, 
     state.input_tsseq = state.output_tsseq;
     state.output_tsseq = NULL;
   }
+  trackedvar_track_end();
   return state.input_tsseq;
 }
 
 __attribute__((weak))
-npx_layerio_tsseq_t *npx_inference(npx_network_t *net, const npx_layerio_tsseq_t *input_tsseq, int layer_start_index, int layer_end_index)
+npx_layerio_tsseq_t *
+npx_inference(npx_network_t *net, const npx_layerio_tsseq_t *input_tsseq, int layer_start_index, int layer_end_index)
 {
   npx_layerio_tsseq_t *result;
   NPX_PROFILING_START();
@@ -251,8 +260,7 @@ static void _npx_layer_compute_seq_reset(npx_layer_compute_t **layer_compute_seq
     {
       npx_leaky_layer_t *leaky_layer = (npx_leaky_layer_t *)(layer_compute->layer);
       int num_channel = leaky_layer->iodata.in_channels;
-      for (int j = 0; j < num_channel; j++)
-        matrix_zero_sw(leaky_layer->membrane_potential[j]);
+      matrix_zero_sw(leaky_layer->membrane_potential_total);
     }
     else if (layer_compute->layer_type == NPXL_BLOCK)
     {
@@ -291,7 +299,7 @@ static ErvpMatrixInfo *generate_output_matrix_info(NpxTensorInfo *output_tensor,
   if (channel_index == 0)
   {
     assert(preallocated == NULL);
-    output_matrix = matrix_generate_info(output_tensor->datatype, output_tensor->size[1], output_tensor->size[0], output_tensor->addr, NULL);
+    output_matrix = matrix_generate_info(output_tensor->datatype, npx_tensor_get_size(output_tensor, 1), npx_tensor_get_size(output_tensor, 0), output_tensor->addr, NULL);
   }
   else
   {
@@ -304,13 +312,13 @@ static ErvpMatrixInfo *generate_output_matrix_info(NpxTensorInfo *output_tensor,
   return output_matrix;
 }
 
-static ErvpMatrixInfo *generate_tv_matrix_info(int size[2], npx_testvector_t *tv, int timesteps, int layer_index, int channel_index, ErvpMatrixInfo *preallocated)
+static ErvpMatrixInfo *generate_tv_matrix_info(npx_tensor_dim_size_t size_array[2], npx_testvector_t *tv, int timesteps, int layer_index, int channel_index, ErvpMatrixInfo *preallocated)
 {
   ErvpMatrixInfo *ref_matrix;
   if (channel_index == 0)
   {
     assert(preallocated == NULL);
-    ref_matrix = matrix_generate_info(MATRIX_DATATYPE_SINT32, size[1], size[0], NULL, NULL);
+    ref_matrix = matrix_generate_info(MATRIX_DATATYPE_SINT32, size_array[1], size_array[0], NULL, NULL);
   }
   else
   {
@@ -323,7 +331,7 @@ static ErvpMatrixInfo *generate_tv_matrix_info(int size[2], npx_testvector_t *tv
   index += timesteps * tv->testvector_acc_size[tv->num_layer - 1];
   index += (tv->testvector_acc_size[layer_index] - tv->layer_output_size[layer_index]);
   if (channel_index > 0)
-    index += channel_index * size[1] * size[0];
+    index += channel_index * size_array[1] * size_array[0];
   ref_matrix->addr = &(addr[index]);
 
   return ref_matrix;
@@ -349,12 +357,12 @@ void npx_verify_with_testvector(npx_layerio_tsseq_t *output_tsseq, npx_testvecto
     ErvpMatrixInfo *output_matrix = NULL;
     ErvpMatrixInfo *ref_matrix = NULL;
     assert(output_tensor->num_dim <= 3);
-    int out_channels = (output_tensor->num_dim == 3) ? output_tensor->size[2] : 1;
+    int out_channels = (output_tensor->num_dim == 3) ? npx_tensor_get_size(output_tensor, 2) : 1;
     for (int j = 0; j < out_channels; j++)
     {
       output_matrix = generate_output_matrix_info(output_tensor, j, output_matrix);
-      ref_matrix = generate_tv_matrix_info(output_tensor->size, tv, t, layer_index, j, ref_matrix);
-      int all_correct = matrix_compare_one_by_one(output_matrix, ref_matrix, 0.01, 1);
+      ref_matrix = generate_tv_matrix_info(npx_tensor_get_size_array(output_tensor), tv, t, layer_index, j, ref_matrix);
+      int all_correct = matrix_equal_one_by_one(output_matrix, ref_matrix, 0.01, 1);
 
       if ((!all_correct) || PRINT_VERIFY_ALL_RESULT)
       {
@@ -378,8 +386,8 @@ int npx_classify(npx_network_t *net, const npx_layerio_tsseq_t *output_tsseq, in
 {
   assert(output_tsseq);
   assert(output_tsseq->sequence[0]->num_dim == 2);
-  assert(output_tsseq->sequence[0]->size[0] == 1);
-  assert(output_tsseq->sequence[0]->size[1] == net->classes);
+  assert(npx_tensor_get_size(output_tsseq->sequence[0], 0) == 1);
+  assert(npx_tensor_get_size(output_tsseq->sequence[0], 1) == net->classes);
 
   int *output_acc = (int *)calloc(net->classes, sizeof(int));
   ErvpMatrixInfo *output_matrix = NULL;
@@ -451,7 +459,7 @@ static int _npx_network_optimize(npx_network_t *net, const char *pattern, const 
     layer_compute->layer = layer_block;
     layer_compute->mop_mapping = NULL;
     layer_compute->forward = forward;
-    layer_compute->operator= operator;
+    layer_compute->operator = operator;
 
     int num_layer_optimized = net->num_layer - pattern_size + 1;
     npx_layer_compute_t **layer_compute_seq_optimized = npx_layer_compute_seq_alloc(num_layer_optimized);
@@ -484,8 +492,7 @@ static int _npx_network_optimize(npx_network_t *net, const char *pattern, const 
   return index;
 }
 
-__attribute__((weak))
-void npx_network_optimize(npx_network_t *net, const char *pattern, int num_change, const char *operator, void (*forward)(void *layer, ervp_mop_mapping_t *mop_mapping, npx_layerio_state_t *state))
+__attribute__((weak)) void npx_network_optimize(npx_network_t *net, const char *pattern, int num_change, const char *operator, void (*forward)(void *layer, ervp_mop_mapping_t *mop_mapping, npx_layerio_state_t *state))
 {
   if (num_change < 0)
     num_change = net->num_layer;

@@ -1,13 +1,18 @@
 #include <string.h>
 #include "ervp_assert.h"
 #include "ervp_matrix_op.h"
+#include "ervp_smart_flush.h"
 
 void _matrix_mult_fixed_sw(ervp_mop_mapping_t* mop_mapping, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c, unsigned int option_value)
 {
+	// printf_function();
 	int i, j, k;
   ervp_mop_option_t mop_option = mop_option_alloc(option_value);
   assert(_mop_option_check(c, option_value));
   assert(mop_option.br.stride_m1==0);
+	assert(!a->is_scalar);
+	assert(!b->is_scalar);
+
 	for(i=0; i<a->num_row; i++)
 	{
 		for(j=0; j<b->num_col; j++)
@@ -25,6 +30,9 @@ void _matrix_mult_fixed_sw(ervp_mop_mapping_t* mop_mapping, const ErvpMatrixInfo
 			matrix_write_fixed_element(c, i, j, result);
 		}
 	}
-  c->is_binary = 0;
+  //
+  trackedvar_add(a->addr, 0);
+  trackedvar_add(b->addr, 0);
+  trackedvar_add(c->addr, 1);
   mop_option_free(mop_option);
 }

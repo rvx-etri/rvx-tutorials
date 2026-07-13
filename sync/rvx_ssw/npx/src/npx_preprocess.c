@@ -22,7 +22,8 @@ static NpxTensorInfo *generate_single_step_by_lfsr(const NpxTensorInfo *input);
 static NpxTensorInfo *generate_single_step(const NpxTensorInfo *input, const char *step_generation);
 
 __attribute__((weak))
-npx_layerio_tsseq_t *npx_preprocess(const char *pre_fname, const npx_network_t *net, const NpxTensorInfo *input, float input_scale)
+npx_layerio_tsseq_t *
+npx_preprocess(const char *pre_fname, const npx_network_t *net, const NpxTensorInfo *input, float input_scale)
 {
   NPX_PROFILING_START();
   assert(net);
@@ -102,12 +103,12 @@ npx_layerio_tsseq_t *npx_dvsgesture_preprocess(const npx_network_t *net, NpxTens
   for (int t = 0; t < timesteps; t++)
   {
     input_tsseq->sequence[t] = npx_tensor_alloc_wo_data(3);
-    input_tsseq->sequence[t]->size[0] = resized->size[0];
-    input_tsseq->sequence[t]->size[1] = resized->size[1];
-    input_tsseq->sequence[t]->size[2] = resized->size[2];
+    npx_tensor_set_size(input_tsseq->sequence[t], 0, npx_tensor_get_size(resized, 0));
+    npx_tensor_set_size(input_tsseq->sequence[t], 1, npx_tensor_get_size(resized, 1));
+    npx_tensor_set_size(input_tsseq->sequence[t], 2, npx_tensor_get_size(resized, 2));
     npx_tensor_set_datatype(input_tsseq->sequence[t], resized->datatype);
     npx_tensor_set_contiguous_layout(input_tsseq->sequence[t]);
-    input_tsseq->sequence[t]->addr = resized->addr + t * resized->stride[3];
+    input_tsseq->sequence[t]->addr = resized->addr + t * npx_tensor_get_stride(resized, 3);
   }
 
   int *is_boundary = (int *)malloc(timesteps * sizeof(int));
@@ -184,12 +185,12 @@ npx_layerio_tsseq_t *npx_dvs_preprocess(const npx_network_t *net, const NpxTenso
   for (int t = 0; t < timesteps; t++)
   {
     input_tsseq->sequence[t] = npx_tensor_alloc_wo_data(3);
-    input_tsseq->sequence[t]->size[0] = resized->size[0];
-    input_tsseq->sequence[t]->size[1] = resized->size[1];
-    input_tsseq->sequence[t]->size[2] = resized->size[2];
+    npx_tensor_set_size(input_tsseq->sequence[t], 0, npx_tensor_get_size(resized, 0));
+    npx_tensor_set_size(input_tsseq->sequence[t], 1, npx_tensor_get_size(resized, 1));
+    npx_tensor_set_size(input_tsseq->sequence[t], 2, npx_tensor_get_size(resized, 2));
     npx_tensor_set_datatype(input_tsseq->sequence[t], resized->datatype);
     npx_tensor_set_contiguous_layout(input_tsseq->sequence[t]);
-    input_tsseq->sequence[t]->addr = resized->addr + t * resized->stride[3];
+    input_tsseq->sequence[t]->addr = resized->addr + t * npx_tensor_get_stride(resized, 3);
   }
 
   int *is_boundary = (int *)malloc(timesteps * sizeof(int));
@@ -230,12 +231,12 @@ npx_layerio_tsseq_t *npx_dvs346_preprocess(const npx_network_t *net, const NpxTe
   for (int t = 0; t < timesteps; t++)
   {
     input_tsseq->sequence[t] = npx_tensor_alloc_wo_data(3);
-    input_tsseq->sequence[t]->size[0] = resized->size[0];
-    input_tsseq->sequence[t]->size[1] = resized->size[1];
-    input_tsseq->sequence[t]->size[2] = resized->size[2];
+    npx_tensor_set_size(input_tsseq->sequence[t], 0, npx_tensor_get_size(resized, 0));
+    npx_tensor_set_size(input_tsseq->sequence[t], 1, npx_tensor_get_size(resized, 1));
+    npx_tensor_set_size(input_tsseq->sequence[t], 2, npx_tensor_get_size(resized, 2));
     npx_tensor_set_datatype(input_tsseq->sequence[t], resized->datatype);
     npx_tensor_set_contiguous_layout(input_tsseq->sequence[t]);
-    input_tsseq->sequence[t]->addr = resized->addr + t * resized->stride[3];
+    input_tsseq->sequence[t]->addr = resized->addr + t * npx_tensor_get_stride(resized, 3);
   }
 
   int *is_boundary = (int *)malloc(timesteps * sizeof(int));

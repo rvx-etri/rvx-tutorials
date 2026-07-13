@@ -48,6 +48,10 @@ assign boot_mode = `BOOT_MODE_OCD;
 `define VLRAM_CELL i_platform.`DRAM_IP_INSTANCE.i_cell.memory
 `define MRAM_UP_CELL i_mram_up.MRAM_Array
 `define MRAM_LOW_CELL i_mram_low.MRAM_Array
+`define SDRAM_UP0_CELL uSDR_U.bank0
+`define SDRAM_UP1_CELL uSDR_U.bank1
+`define SDRAM_LOW0_CELL uSDR_L.bank0
+`define SDRAM_LOW1_CELL uSDR_L.bank1
 `endif
 
 `define BW_WORD 32
@@ -65,6 +69,9 @@ integer cell_index;
 integer word_index_in_cell;
 integer word_index_in_line;
 integer line_index_in_cell;
+integer num_bank_in_cell;
+integer num_line_in_bank;
+integer bank_index_in_cell;
 integer direct_memory_load;
 integer addr;
 integer num_word_in_line;

@@ -578,8 +578,11 @@ if __name__ == '__main__':
     elif cmd_list[1]=='run_verify':
       rvx_workspace.imp_fpga_run_verify(platform_name, app_name, args.target_imp_class, args.build_mode, imp_instance_path)
 
-    elif cmd_list[1]=='flash':
-      rvx_workspace.imp_fpga_flash(platform_name, app_name, args.target_imp_class, args.build_mode, imp_instance_path)
+    elif cmd_list[1]=='app_flash':
+      rvx_workspace.imp_fpga_app_flash(platform_name, app_name, args.target_imp_class, args.build_mode, imp_instance_path)
+    
+    elif cmd_list[1]=='gen_flash_script':
+      rvx_workspace.imp_fpga_gen_flash_script(platform_name, app_name, args.target_imp_class, imp_instance_path)
 
     elif cmd_list[1]=='__project':
       rvx_workspace.imp_fpga___project(platform_name, args.target_imp_class, imp_instance_path)
@@ -619,11 +622,11 @@ if __name__ == '__main__':
       rvx_workspace.imp_fpga_check_imp(imp_instance_path)
 
     elif cmd_list[1]=='program':
-      rvx_workspace.imp_fpga_program(args.target_imp_class, imp_instance_path)
+      rvx_workspace.imp_fpga_program(platform_name, args.target_imp_class, imp_instance_path)
     elif cmd_list[1]=='mcs':
       rvx_workspace.imp_fpga_mcs(imp_instance_path)
     elif cmd_list[1]=='program_flash':
-      rvx_workspace.imp_fpga_program_flash(args.target_imp_class, imp_instance_path)
+      rvx_workspace.imp_fpga_program_flash(platform_name, args.target_imp_class, imp_instance_path)
 
     elif cmd_list[1]=='ila':
       rvx_workspace.imp_fpga_ila(platform_name, args.target_imp_class, imp_instance_path)
@@ -639,6 +642,9 @@ if __name__ == '__main__':
 
     elif cmd_list[1]=='dump':
       rvx_workspace.imp_fpga_dump(args.target_imp_class, imp_instance_path)
+    
+    elif cmd_list[1]=='dump_flash_image':
+      rvx_workspace.imp_fpga_dump_flash_image(platform_name, args.target_imp_class, imp_instance_path)
 
     elif cmd_list[1]=='check_dumped_image' or cmd_list[1]=='check_image':
       rvx_workspace.imp_fpga_check_dumped_image(args.target_imp_class, imp_instance_path)

@@ -60,6 +60,11 @@
       <width>1</width>
       <port>input</port>
     </signal>
+    <signal>
+      <name>cache_flush</name>
+      <width>1</width>
+      <port>output</port>
+    </signal>
 
     <signal>
       <name>load_tensor_row_wvalid</name>

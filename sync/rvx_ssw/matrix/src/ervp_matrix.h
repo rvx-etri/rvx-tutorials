@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include "ervp_matrix_datatype_define.h"
 #include "ervp_printf.h"
-#include "platform_info.h"
 
 // #define MATRIX_DATATYPE_SINT01 GEN_MATRIX_DATATYPE(0,1,0) // IMPOSSIBLE
 #define MATRIX_DATATYPE_UINT01 GEN_MATRIX_DATATYPE(0, 0, -3, 1)
@@ -26,14 +25,22 @@ typedef struct
 	int stride_ls3;
 	int num_row;
 	int num_col;
-	int datatype;
-	uint8_t is_array_allocated;
+	ervp_matrix_datatype_t datatype;
+	uint8_t is_array_allocated; // allocated by this struct
+	uint8_t is_sub;							// is submatrix of the original
 	uint8_t is_binary;
-	uint8_t bit_offset;
+	unsigned int is_scalar : 1;
+	unsigned int bit_offset : 7; // min 3
 } ErvpMatrixInfo;
 
-ErvpMatrixInfo *matrix_generate_info(int datatype, int num_row, int num_col, void *array_1d, ErvpMatrixInfo *prealloacted);
-ErvpMatrixInfo *matrix_generate_submatrix_info(const ErvpMatrixInfo *original_matrix, ErvpMatrixInfo *prealloacted);
+ErvpMatrixInfo *matrix_generate_info(ervp_matrix_datatype_t datatype, int num_row, int num_col, void *array_1d, ErvpMatrixInfo *preallocated);
+ErvpMatrixInfo *matrix_generate_submatrix_info(const ErvpMatrixInfo *original_matrix, ErvpMatrixInfo *preallocated);
+static inline ErvpMatrixInfo *matrix_generate_scalar_info(ervp_matrix_datatype_t datatype, void *array_1d, ErvpMatrixInfo *preallocated)
+{
+	ErvpMatrixInfo *result = matrix_generate_info(datatype, 1, 1, array_1d, preallocated);
+	result->is_scalar = 1;
+	return result;
+}
 
 static inline void matrix_set_stride(ErvpMatrixInfo *info, int stride)
 {
@@ -51,24 +58,36 @@ static inline int matrix_num_elements(const ErvpMatrixInfo *info)
 
 int matrix_num_bytes(const ErvpMatrixInfo *info);
 
-ErvpMatrixInfo *matrix_alloc(int datatype, int num_row, int num_col, ErvpMatrixInfo *prealloacted);
+ErvpMatrixInfo *matrix_alloc(ervp_matrix_datatype_t datatype, int num_row, int num_col, ErvpMatrixInfo *preallocated);
 void matrix_free(ErvpMatrixInfo *ptr);
 void matrix_list_free(ErvpMatrixInfo **ptr, int num);
 
 static inline int matrix_is_same_size(const ErvpMatrixInfo *a, const ErvpMatrixInfo *b)
 {
 	int all_are_equal = 1;
-	if (a->num_row != b->num_row)
+	if (b->is_scalar)
+		all_are_equal = 1;
+	else if (a->num_row != b->num_row)
 		all_are_equal = 0;
 	else if (a->num_col != b->num_col)
 		all_are_equal = 0;
 	return all_are_equal;
 }
 
-int matrix_compare(const ErvpMatrixInfo *result, const ErvpMatrixInfo *ref, int prints);
-int matrix_compare_one_by_one(const ErvpMatrixInfo *result, const ErvpMatrixInfo *ref, float error_rate, int prints);
+int matrix_equal(const ErvpMatrixInfo *result, const ErvpMatrixInfo *ref, int prints);
+int matrix_equal_one_by_one(const ErvpMatrixInfo *result, const ErvpMatrixInfo *ref, float error_rate, int prints);
 
-const char *matrix_datatype_get_name(int datatype);
+static inline int matrix_compare(const ErvpMatrixInfo *result, const ErvpMatrixInfo *ref, int prints)
+{
+	return matrix_equal(result, ref, prints);
+}
+
+static inline int matrix_compare_one_by_one(const ErvpMatrixInfo *result, const ErvpMatrixInfo *ref, float error_rate, int prints)
+{
+	return matrix_equal_one_by_one(result, ref, error_rate, prints);
+}
+
+const char *matrix_datatype_get_name(ervp_matrix_datatype_t datatype);
 void matrix_print_brief(const ErvpMatrixInfo *mat);
 void matrix_print(const ErvpMatrixInfo *mat);
 void matrix_print_hex_bit(const ErvpMatrixInfo *mat, int num_bits);

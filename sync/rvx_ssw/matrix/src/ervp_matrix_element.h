@@ -23,15 +23,20 @@ static inline int matrix_get_num_bytes_per_row(const ErvpMatrixInfo *matrix)
 }
 
 // check whether the matrix is stored as a 1D array
-static inline int matrix_has_simple_layout(const ErvpMatrixInfo *matrix)
+static inline int matrix_has_contiguous_layout(const ErvpMatrixInfo *matrix)
 {
-  int row_bitsize = matrix_get_num_bits_per_row(matrix);
-  return (row_bitsize == matrix->stride_ls3);
+  return (matrix_get_num_bits_per_row(matrix) == matrix->stride_ls3);
+}
+
+static inline int matrix_is_row_addr_aligned_to_byte(const ErvpMatrixInfo *matrix)
+{
+  return ((matrix->stride_ls3 & 7) == 0);
 }
 
 static inline void *matrix_get_row_addr(const ErvpMatrixInfo *matrix, int row_index)
 {
   assert(row_index < matrix->num_row);
+  assert(matrix_is_row_addr_aligned_to_byte(matrix));
   void *addr = 0;
   addr = matrix->addr;
   addr += ((matrix->stride_ls3 * row_index) >> 3);
@@ -40,6 +45,7 @@ static inline void *matrix_get_row_addr(const ErvpMatrixInfo *matrix, int row_in
 
 static inline int matrix_get_element_addr_offset_in_row(const ErvpMatrixInfo *matrix, int col_index)
 {
+  assert(matrix_is_row_addr_aligned_to_byte(matrix));
   int shift_amount = matrix_datatype_get_addr_lsa(matrix->datatype);
   int offset;
   if (shift_amount >= 0)
@@ -64,7 +70,6 @@ static inline void *matrix_get_element_addr(const ErvpMatrixInfo *matrix, int ro
   void *row_addr = matrix_get_row_addr(matrix, row_index);
   int offset = matrix_get_element_addr_offset_in_row(matrix, col_index);
   void *addr = row_addr + offset;
-  assert_invalid_data_pointer(addr);
   return addr;
 }
 

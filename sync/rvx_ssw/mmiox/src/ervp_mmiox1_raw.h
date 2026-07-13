@@ -16,14 +16,6 @@ static inline void mmiox1_raw_config_read(mmio_addr_t mmiox1_maddr, mmio_struct_
   mmio_read_struct(mmiox1_maddr + MMAP_OFFSET_MMIO_CORE_CONFIG_SAWD, size_of_config, config);
 }
 
-static inline void mmiox1_raw_inst_push(mmio_addr_t mmiox1_maddr, const mmio_struct_t *inst, int num_inst, int size_of_inst, int enable_itr)
-{
-  int size_in_4byte = rshift_ru(size_of_inst, 2) * num_inst;
-  if (enable_itr)
-    mmio_write_data(mmiox1_maddr + MMAP_OFFSET_MMIO_ITR_REQUEST, (1 << EXCLUSIVE_ID));
-  mmio_write_struct(mmiox1_maddr + MMAP_OFFSET_MMIO_INST_FIFO_SAWD, size_in_4byte << 2, inst);
-}
-
 static inline mmio_data_t mmiox1_raw_itr_get_status(mmio_addr_t mmiox1_maddr)
 {
   return mmio_read_data(mmiox1_maddr + MMAP_OFFSET_MMIO_ITR_STATUS);
@@ -67,6 +59,15 @@ static inline int mmiox1_raw_inst_num_busy(mmio_addr_t mmiox1_maddr)
 static inline int mmiox1_raw_inst_is_busy(mmio_addr_t mmiox1_maddr)
 {
   return (mmiox1_raw_inst_num_busy(mmiox1_maddr) > 0);
+}
+
+static inline void mmiox1_raw_inst_push(mmio_addr_t mmiox1_maddr, const mmio_struct_t *inst, int num_inst, int size_of_inst, int enable_itr)
+{
+  // while (mmiox1_raw_inst_num_vacant(mmiox1_maddr) < num_inst);
+  int size_in_4byte = rshift_ru(size_of_inst, 2) * num_inst;
+  if (enable_itr)
+    mmio_write_data(mmiox1_maddr + MMAP_OFFSET_MMIO_ITR_REQUEST, (1 << EXCLUSIVE_ID));
+  mmio_write_struct(mmiox1_maddr + MMAP_OFFSET_MMIO_INST_FIFO_SAWD, size_in_4byte << 2, inst);
 }
 
 static inline int mmiox1_raw_core_has_log(mmio_addr_t mmiox1_maddr)

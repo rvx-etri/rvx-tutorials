@@ -24,15 +24,18 @@ static inline unsigned int get_wait_lock_addr(int lock_index)
 	return addr + (1 << shift);
 }
 
-static inline unsigned int __is_lock_occupied(unsigned int addr)
+static inline unsigned int __can_lock_be_acquired(unsigned int addr)
 {
 	return REG32(addr);
 }
 
 static inline void __wait_lock(unsigned int addr)
 {
-	while (__is_lock_occupied(addr) != 0)
-		;
+	while (1)
+	{
+		if (__can_lock_be_acquired(addr))
+			break;
+	}
 }
 
 // returns positive value if acquired rather than 1

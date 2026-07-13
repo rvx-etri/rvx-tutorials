@@ -10,6 +10,7 @@
 #include <string.h>
 // #include <stdlib.h>
 #include <stdint.h>
+#include <limits.h>
 #include "npx_parser.h"
 #include "npx_layer.h"
 #include "npx_network.h"
@@ -161,6 +162,7 @@ static void parse_iodata2d(npx_layer2d_iodata_t *iodata, texpar_list_t *option_l
   iodata->out_is_quantized = texpar_find_int_quiet(option_list, "out_is_quantized", -1);
   iodata->in_is_binary = texpar_find_int_quiet(option_list, "in_is_binary", -1);
   iodata->out_is_binary = texpar_find_int_quiet(option_list, "out_is_binary", -1);
+  iodata->out_maxvalue = texpar_find_int_quiet(option_list, "out_maxvalue", -1);
 
   assert(iodata->in_channels > 0);
   assert(iodata->out_channels > 0);
@@ -170,6 +172,19 @@ static void parse_iodata2d(npx_layer2d_iodata_t *iodata, texpar_list_t *option_l
   assert(iodata->out_size[1] > 0);
   assert(iodata->in_is_quantized >= 0);
   assert(iodata->out_is_quantized >= 0);
+  assert(iodata->out_maxvalue >= 0);
+
+  if (iodata->out_is_quantized)
+  {
+    if (iodata->out_maxvalue <= INT8_MAX)
+      iodata->out_datatype = MATRIX_DATATYPE_SINT08;
+    else if (iodata->out_maxvalue <= SHRT_MAX)
+      iodata->out_datatype = MATRIX_DATATYPE_SINT16;
+    else
+      iodata->out_datatype = MATRIX_DATATYPE_SINT32;
+  }
+  else
+    iodata->out_datatype = MATRIX_DATATYPE_FLOAT32;
 }
 
 static int get_weight_datatype(texpar_list_t *option_list)
@@ -189,7 +204,7 @@ static int get_weight_datatype(texpar_list_t *option_list)
   return weight_datatype;
 }
 
-static void transpose_matrix_info(ErvpMatrixInfo **src_info_list, ErvpMatrixInfo **dst_info_list, int row, int col)
+static void _transpose_matrix(ErvpMatrixInfo **src_info_list, ErvpMatrixInfo **dst_info_list, int row, int col)
 {
   for (int i = 0; i < row; i++)
     for (int j = 0; j < col; j++)
@@ -224,16 +239,16 @@ static void parse_conv2d(npx_layer_compute_t *layer_compute, texpar_list_t *opti
 
   // weight
   conv2d_layer->weight_tensor = npx_tensor_alloc_wo_data(4);
-  conv2d_layer->weight_tensor->size[0] = conv2d_layer->kernel_size;
-  conv2d_layer->weight_tensor->size[1] = conv2d_layer->kernel_size;
-  conv2d_layer->weight_tensor->size[2] = conv2d_layer->iodata.in_channels;
-  conv2d_layer->weight_tensor->size[3] = conv2d_layer->iodata.out_channels;
+  npx_tensor_set_size(conv2d_layer->weight_tensor, 0, conv2d_layer->kernel_size);
+  npx_tensor_set_size(conv2d_layer->weight_tensor, 1, conv2d_layer->kernel_size);
+  npx_tensor_set_size(conv2d_layer->weight_tensor, 2, conv2d_layer->iodata.in_channels);
+  npx_tensor_set_size(conv2d_layer->weight_tensor, 3, conv2d_layer->iodata.out_channels);
   npx_tensor_set_datatype(conv2d_layer->weight_tensor, get_weight_datatype(option_list));
   npx_tensor_alloc_data(conv2d_layer->weight_tensor);
 
   conv2d_layer->weight_matrix_info_list_for_output_reuse = npx_tensor_to_matrix_info_list(conv2d_layer->weight_tensor, 1, conv2d_layer->iodata.out_channels * conv2d_layer->iodata.in_channels);
   conv2d_layer->weight_matrix_info_list_for_input_reuse = npx_tensor_to_matrix_info_list(conv2d_layer->weight_tensor, 1, conv2d_layer->iodata.out_channels * conv2d_layer->iodata.in_channels);
-  transpose_matrix_info(conv2d_layer->weight_matrix_info_list_for_output_reuse, conv2d_layer->weight_matrix_info_list_for_input_reuse, conv2d_layer->iodata.out_channels, conv2d_layer->iodata.in_channels);
+  _transpose_matrix(conv2d_layer->weight_matrix_info_list_for_output_reuse, conv2d_layer->weight_matrix_info_list_for_input_reuse, conv2d_layer->iodata.out_channels, conv2d_layer->iodata.in_channels);
 
   // operator
   layer_compute->operator = operator;
@@ -300,7 +315,7 @@ static void parse_leaky(npx_layer_compute_t *layer_compute, texpar_list_t *optio
   parse_iodata2d(&(leaky_layer->iodata), option_list);
 
   int num_channel = leaky_layer->iodata.in_channels;
-  int datatype = leaky_layer->iodata.in_is_quantized ? MATRIX_DATATYPE_SINT32 : MATRIX_DATATYPE_FLOAT32;
+  ervp_matrix_datatype_t datatype = leaky_layer->iodata.in_is_quantized ? MATRIX_DATATYPE_SINT32 : MATRIX_DATATYPE_FLOAT32;
   leaky_layer->membrane_potential = (ErvpMatrixInfo **)calloc(num_channel, sizeof(ErvpMatrixInfo *));
 #if 1
   leaky_layer->membrane_potential_total = matrix_alloc(datatype, num_channel * leaky_layer->iodata.in_size[1], leaky_layer->iodata.in_size[0], NULL);
@@ -350,10 +365,12 @@ static void parse_linear(npx_layer_compute_t *layer_compute, texpar_list_t *opti
 
   // weight
   linear_layer->weight_tensor = npx_tensor_alloc_wo_data(2);
-  linear_layer->weight_tensor->size[0] = linear_layer->in_features;
-  linear_layer->weight_tensor->size[1] = linear_layer->out_features;
+  npx_tensor_set_size(linear_layer->weight_tensor, 0, linear_layer->in_features);
+  npx_tensor_set_size(linear_layer->weight_tensor, 1, linear_layer->out_features);
   npx_tensor_set_datatype(linear_layer->weight_tensor, get_weight_datatype(option_list));
   npx_tensor_alloc_data(linear_layer->weight_tensor);
+
+  linear_layer->transposed_weight_matrix = matrix_alloc(linear_layer->weight_tensor->datatype, linear_layer->in_features, linear_layer->out_features, NULL);
 
   layer_compute->operator = operator;
   layer_compute->forward = npx_forward_linear_layer_default;

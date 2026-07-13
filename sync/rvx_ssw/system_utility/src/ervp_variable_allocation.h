@@ -27,4 +27,3 @@
 #define NON_VOLATILE __attribute__ ((section(".non_volatile")))
 
 #endif
-

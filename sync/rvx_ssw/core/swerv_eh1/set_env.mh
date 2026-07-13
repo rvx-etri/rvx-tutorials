@@ -1,0 +1,16 @@
+CROSS_COMPILE = ${RVX_COMPILER_BASIC}
+CFLAGS += -march=rv32imc -mabi=ilp32
+LD_FLAGS += -march=rv32imc -mabi=ilp32
+
+INCLUDES += -I${RVX_SSW_HOME}/core/swerv_eh1
+ASM_SRC += ${RVX_SSW_HOME}/core/swerv_eh1/start.S
+
+ifeq ($(USE_FREERTOS),true)
+	ASM_SRC += ${RVX_SSW_HOME}/core/swerv_eh1/portasm.S
+else
+	ASM_SRC += ${RVX_SSW_HOME}/core/swerv_eh1/entry.S
+endif
+
+C_SRC += $(wildcard ${RVX_SSW_HOME}/core/swerv_eh1/*.c)
+
+include ${RVX_SSW_HOME}/riscv/riscv_compile.mh

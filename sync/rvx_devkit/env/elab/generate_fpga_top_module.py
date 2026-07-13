@@ -51,12 +51,17 @@ if __name__ == '__main__':
     no_jtag_reset = True
   else:
     no_jtag_reset = False
-  if 'ext_mram_levelshifter' in imp_class_info['fpga_info']:
-    ext_mram_levelshifter = True
+  if 'offchip_mram_levelshifter' in imp_class_info['fpga_info']:
+    offchip_mram_levelshifter = True
   else:
-    ext_mram_levelshifter = False
+    offchip_mram_levelshifter = False
+  if 'active_high_reset' in imp_class_info['fpga_info']:
+    active_high_reset = True
+  else:
+    active_high_reset = False
     
   exclude_port_list = imp_class_info['fpga_info'].get('exclude_port')
+  special_port_list = []
   if not exclude_port_list:
     exclude_port_list = []
   elif type(exclude_port_list)==str:
@@ -65,10 +70,13 @@ if __name__ == '__main__':
     exclude_port_list.append('spi_flash_sclk')
   if no_jtag_reset:
     exclude_port_list.append('pjtag_rtrstnn')
-  if not ext_mram_levelshifter:
+  if not offchip_mram_levelshifter:
     exclude_port_list.append('EXTMR_LS_OE_P')
     exclude_port_list.append('EXTMR_LS_CE_N')
+  if active_high_reset:
+    special_port_list.append('external_rstnn')
   exclude_port_set = frozenset(exclude_port_list)
+  special_port_set = frozenset(special_port_list)
 
   #
   xml_tree = parse(args.top_xml)
@@ -100,10 +108,20 @@ if __name__ == '__main__':
   top_port_list = []
   wire_list = []
   for name, width_xml, port in platform_signal_list:
-    if name in exclude_port_set:
-      wire_list.append((name, width_xml, port))
+    if name in special_port_set:
+      if name=='external_rstnn':
+        assert port=='input'
+        assignment = ' = ~external_rstpp'
+        wire_list.append((name, width_xml, assignment))
+        top_port_list.append(('external_rstpp', width_xml, port))
+      else:
+        assert 0
+    elif name in exclude_port_set:
+      assignment = ' = 0' if port=='input' else ''
+      wire_list.append((name, width_xml, assignment))
     elif name.startswith('external_clk') and (name not in external_clk_valid_name_set):
-      wire_list.append((name, width_xml, port))
+      assert port=='input'
+      wire_list.append((name, width_xml, ' = 0' ))
     else:
       top_port_list.append((name, width_xml, port))
 
@@ -140,8 +158,7 @@ if __name__ == '__main__':
 
   # signal not mapped to platform
   line_list.append('')
-  for name, width_xml, port in wire_list:
-    assignment = ' = 0' if port=='input' else ''
+  for name, width_xml, assignment in wire_list:
     if width_xml.attrib['type']=='dec' and width_xml.text=='1':
       line_list.append(f'wire {name}{assignment};')
     else:

@@ -186,7 +186,7 @@ static int read_matrix_csv_single_integer(FAKEFILE *fp)
   return atoi(buf);
 }
 
-static ErvpMatrixInfo *read_matrix_csv_elements(const char *filename, int has_info, int rows, int cols, int datatype, int check_value_range)
+static ErvpMatrixInfo *read_matrix_csv_elements(const char *filename, int has_info, int rows, int cols, ervp_matrix_datatype_t datatype, int check_value_range)
 {
   ErvpMatrixInfo *result = matrix_alloc(datatype, rows, cols, NULL);
   FAKEFILE *fp = ffopen(filename, "r");
@@ -213,7 +213,7 @@ static ErvpMatrixInfo *read_matrix_csv_elements(const char *filename, int has_in
   return result;
 }
 
-ErvpMatrixInfo *matrix_read_csv_file(const char *filename, int datatype_from_user, int check_value_range)
+ErvpMatrixInfo *matrix_read_csv_file(const char *filename, ervp_matrix_datatype_t datatype_from_user, int check_value_range)
 {
   assert(is_csv_file(filename));
 
@@ -228,7 +228,7 @@ ErvpMatrixInfo *matrix_read_csv_file(const char *filename, int datatype_from_use
     assert(rows == get_matrix_csv_rows(filename));
   }
 
-  int datatype;
+  ervp_matrix_datatype_t datatype;
   if (datatype_from_user == DATATYPE_FROM_INFO)
   {
     assert(has_info);

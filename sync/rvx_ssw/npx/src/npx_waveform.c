@@ -28,43 +28,39 @@ NpxTensorInfo *npx_log_mel_spectrogram(NpxTensorInfo *input, texpar_list_t *opti
   int hop_length = texpar_find_int_quiet(option_list, "mel_spectrogram.hop_length", 160);
   int n_mels = texpar_find_int_quiet(option_list, "mel_spectrogram.n_mels", 40);
 
-  assert(input->size[1] == 1);
-  assert(input->size[2] == 1);
+  assert(npx_tensor_get_size(input, 1) == 1);
+  assert(npx_tensor_get_size(input, 2) == 1);
 
-  int waveform_length = input->size[0];
+  int waveform_length = npx_tensor_get_size(input, 0);
   int16_t *waveform = input->addr;
-  int nframes = (int)(ceil((float)(abs(num_samples - win_length)) / hop_length));
-  float *pad_fwaveform = malloc(sizeof(float)*num_samples);
-  float *lms = malloc(sizeof(float)*nframes*n_mels);
-  
-  NpxTensorInfo *mel_spectrogram = npx_tensor_alloc_wo_data(3);
-  mel_spectrogram->size[0] = n_mels;
-  mel_spectrogram->size[1] = nframes;
-  mel_spectrogram->size[2] = 1;
-  npx_tensor_set_datatype(mel_spectrogram, MATRIX_DATATYPE_SINT08);
-  npx_tensor_alloc_data(mel_spectrogram);
+  float *pad_fwaveform = malloc(sizeof(float) * num_samples);
 
-  int8_t *lms_int8 = mel_spectrogram->addr;
-
-  for(int k=0; k < num_samples; k++)
+  for (int k = 0; k < num_samples; k++)
   {
-    if(k < waveform_length)
-      pad_fwaveform[k] = (float)(waveform[k])/32768;
+    if (k < waveform_length)
+      pad_fwaveform[k] = (float)(waveform[k]) / 32768;
     else
       pad_fwaveform[k] = 0;
   }
 
+  int nframes = (int)(ceil((float)(abs(num_samples - win_length)) / hop_length));
+  float *lms = malloc(sizeof(float) * nframes * n_mels);
   get_log_mel_spectrogram(pad_fwaveform, num_samples, lms, (float)sample_rate, win_length, hop_length, n_fft, n_mels);
+  free(pad_fwaveform);
 
-  for(int i = 0; i < nframes*n_mels; i++)
+  NpxTensorInfo *mel_spectrogram = npx_tensor_alloc_wo_data(3);
+  npx_tensor_set_size(mel_spectrogram, 0, n_mels);
+  npx_tensor_set_size(mel_spectrogram, 1, nframes);
+  npx_tensor_set_size(mel_spectrogram, 2, 1);
+  npx_tensor_set_datatype(mel_spectrogram, MATRIX_DATATYPE_SINT08);
+  npx_tensor_alloc_data(mel_spectrogram);
+
+  int8_t *lms_int8 = mel_spectrogram->addr;
+  for (int i = 0; i < nframes * n_mels; i++)
   {
     lms_int8[i] = (int8_t)lms[i];
   }
-
-  free(pad_fwaveform);
   free(lms);
 
   return mel_spectrogram;
 }
-
-

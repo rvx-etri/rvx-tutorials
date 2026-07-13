@@ -9,7 +9,8 @@
 #include "ervp_assert.h"
 
 //#define SPI_FREQ_OF_OLED        5000000
-#define SPI_FREQ_OF_OLED        10000000
+//#define SPI_FREQ_OF_OLED        10000000
+#define SPI_FREQ_OF_OLED        13000000
 #define SPI_MODE_OF_OLED        SPI_SCKMODE_3
 
 static const SpiConfig oled_spi_config = {SPI_DIVSOR(SPI_FREQ_OF_OLED), SPI_MODE_OF_OLED, (1<<SPI_INDEX_FOR_OLED), SPI_CSMODE_OFF, (SPI_FMT_PROTO(SPI_PROTO_S) | SPI_FMT_ENDIAN(SPI_ENDIAN_MSB) | SPI_FMT_LEN(8)), 1};

@@ -173,7 +173,7 @@ platform.syn_arch: cloud._sync_check platform._prepare_syn_arch platform._syn_ar
 
 platform._prepare_syn_arch:
 	@tar -xf ./${XML_FILENAME}
-	@rm -rf ${XML_FILENAME} ./${PLATFORM_NAME}.${ARCH_FILENAME} ./${PLATFORM_NAME}.${HEADER_FILENAME}
+	@rm -rf ${XML_FILENAME} ./${PLATFORM_NAME}.${ARCH_FILENAME}
 	@cd ./platform && make new PLATFORM_NAME=${PLATFORM_NAME} ENGINE_LOG_DIR=${CURDIR}
 	@mv -f ${PLATFORM_NAME}.xml ./platform/${PLATFORM_NAME}
 
@@ -181,6 +181,4 @@ platform._syn_arch:
 	@cd ./platform/${PLATFORM_NAME}; \
 		make syn_arch ENGINE_LOG_DIR=${CURDIR}; \
 		rm -rf ./arch/Makefile; \
-		make tar_arch TAR_FILE=${CURDIR}/${PLATFORM_NAME}.${ARCH_FILENAME}; \
-		#make header; \
-		#make tar_header TAR_FILE=${CURDIR}/${PLATFORM_NAME}.${HEADER_FILENAME}
+		make tar_arch TAR_FILE=${CURDIR}/${PLATFORM_NAME}.${ARCH_FILENAME}

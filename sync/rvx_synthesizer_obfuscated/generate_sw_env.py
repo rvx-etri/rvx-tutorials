@@ -177,7 +177,7 @@ if __name__ == "__main__":
 
   hw_library_list = ('timer', 'plic', 'oled_bw', 'oled_rgb', 'lcd_shield', 'tcaching', 'fuse_box', 'arducam',
                     'bluetooth', 'wifi', 'i2s', 'dma', 'florian', 'adc',
-                    'jpeg_encoder', 'jpegls_encoder', 'hbc1_tx', 'hbc1_rx', 'pact', 'sdram', 'edge_video_system', 'starc','dca','c2c','mmiox','extinput_backend')
+                    'jpeg_encoder', 'jpegls_encoder', 'hbc1_tx', 'hbc1_rx', 'pact', 'sdram', 'edge_video_system', 'starc','dca','c2c','mmiox','extinput_backend','offchip_mram')
   for hw in hw_library_list:
     if f'INCLUDE_{hw.upper()}' in define_dict:
       line_list.append(f'-include ${{RVX_SSW_HOME}}/api/{hw}/env/set_env.mh')

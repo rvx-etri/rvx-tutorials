@@ -1,16 +1,16 @@
 #include "ervp_matrix_op_sw.h"
 #include "ervp_special_matrix_op.h"
 #include "ervp_math.h"
+#include "ervp_smart_flush.h"
 
 ervp_hwtask_busy_fx_t _matrix_add_sw(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c, unsigned int option_value)
 {
-  int datatype = a->datatype;
-  assert(datatype != MATRIX_DATATYPE_UINT32);
+  assert(a->datatype != MATRIX_DATATYPE_UINT32);
   assert(b->datatype != MATRIX_DATATYPE_UINT32);
   assert(c->datatype != MATRIX_DATATYPE_UINT32);
   assert(matrix_is_same_size(a, b));
   assert(matrix_is_same_size(a, c));
-  if (datatype == MATRIX_DATATYPE_FLOAT32)
+  if (a->datatype == MATRIX_DATATYPE_FLOAT32)
     matrix_add_float_sw(a, b, c, option_value);
   else
     matrix_add_fixed_sw(a, b, c, option_value);
@@ -19,13 +19,12 @@ ervp_hwtask_busy_fx_t _matrix_add_sw(ervp_mop_mapping_t *mop_mapping, const Ervp
 
 ervp_hwtask_busy_fx_t _matrix_sub_sw(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c, unsigned int option_value)
 {
-  int datatype = a->datatype;
-  assert(datatype != MATRIX_DATATYPE_UINT32);
+  assert(a->datatype != MATRIX_DATATYPE_UINT32);
   assert(b->datatype != MATRIX_DATATYPE_UINT32);
   assert(c->datatype != MATRIX_DATATYPE_UINT32);
   assert(matrix_is_same_size(a, b));
   assert(matrix_is_same_size(a, c));
-  if (datatype == MATRIX_DATATYPE_FLOAT32)
+  if (a->datatype == MATRIX_DATATYPE_FLOAT32)
     matrix_sub_float_sw(a, b, c, option_value);
   else
     matrix_sub_fixed_sw(a, b, c, option_value);
@@ -34,13 +33,12 @@ ervp_hwtask_busy_fx_t _matrix_sub_sw(ervp_mop_mapping_t *mop_mapping, const Ervp
 
 ervp_hwtask_busy_fx_t _matrix_ewmult_sw(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c, unsigned int option_value)
 {
-  int datatype = a->datatype;
-  assert(datatype != MATRIX_DATATYPE_UINT32);
+  assert(a->datatype != MATRIX_DATATYPE_UINT32);
   assert(b->datatype != MATRIX_DATATYPE_UINT32);
   assert(c->datatype != MATRIX_DATATYPE_UINT32);
   assert(matrix_is_same_size(a, b));
   assert(matrix_is_same_size(a, c));
-  if (datatype == MATRIX_DATATYPE_FLOAT32)
+  if (a->datatype == MATRIX_DATATYPE_FLOAT32)
     matrix_ewmult_float_sw(a, b, c, option_value);
   else
     matrix_ewmult_fixed_sw(a, b, c, option_value);
@@ -49,14 +47,13 @@ ervp_hwtask_busy_fx_t _matrix_ewmult_sw(ervp_mop_mapping_t *mop_mapping, const E
 
 ervp_hwtask_busy_fx_t _matrix_mult_sw(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c, unsigned int option_value)
 {
-  int datatype = a->datatype;
-  assert(datatype != MATRIX_DATATYPE_UINT32);
+  assert(a->datatype != MATRIX_DATATYPE_UINT32);
   assert(b->datatype != MATRIX_DATATYPE_UINT32);
   assert(c->datatype != MATRIX_DATATYPE_UINT32);
   assert(a->num_col == b->num_row);
   assert(a->num_row == c->num_row);
   assert(b->num_col == c->num_col);
-  if (datatype == MATRIX_DATATYPE_FLOAT32)
+  if (a->datatype == MATRIX_DATATYPE_FLOAT32)
     matrix_mult_float_sw(a, b, c, option_value);
   else
     matrix_mult_fixed_sw(a, b, c, option_value);
@@ -76,7 +73,9 @@ static ervp_hwtask_busy_fx_t __matrix_copy_part_sw(const ErvpMatrixInfo *a, Ervp
         data.value_signed = _melement_perform_rshift_and_clip(data.value_signed, mop_option.br.rshift, mop_option.br.performs_cliping, c->datatype);
       _matrix_write_element(c, i, j, data);
     }
-  c->is_binary = a->is_binary;
+  //
+  trackedvar_add(a->addr, 0);
+  trackedvar_add(c->addr, 1);
   mop_option_free(mop_option);
   return NULL;
 }
@@ -100,7 +99,9 @@ static ervp_hwtask_busy_fx_t __matrix_transpose_part_sw(const ErvpMatrixInfo *a,
         data.value_signed = _melement_perform_rshift_and_clip(data.value_signed, mop_option.br.rshift, mop_option.br.performs_cliping, c->datatype);
       _matrix_write_element(c, j, i, data);
     }
-  c->is_binary = a->is_binary;
+  //
+  trackedvar_add(a->addr, 0);
+  trackedvar_add(c->addr, 1);
   mop_option_free(mop_option);
   return NULL;
 }
@@ -146,7 +147,9 @@ ervp_hwtask_busy_fx_t _matrix_shift_fixed_sw(ervp_mop_mapping_t *mop_mapping, co
       matrix_write_fixed_element(c, i, j, result);
     }
   }
-  c->is_binary = 0;
+  //
+  trackedvar_add(a->addr, 0);
+  trackedvar_add(c->addr, 1);
   mop_option_free(mop_option);
   return NULL;
 }
@@ -178,6 +181,9 @@ ervp_hwtask_busy_fx_t _matrix_reshape_sw(ervp_mop_mapping_t *mop_mapping, const 
       }
     }
   c->is_binary = a->is_binary;
+  //
+  trackedvar_add(a->addr, 0);
+  trackedvar_add(c->addr, 1);
   mop_option_free(mop_option);
   return NULL;
 }
@@ -194,5 +200,71 @@ ervp_hwtask_busy_fx_t _matrix_downsample_sw(ervp_mop_mapping_t *mop_mapping, con
     _matrix_downsample_float_sw(mop_mapping, input_info, output_info, downsample_option_value);
   else
     _matrix_downsample_fixed_sw(mop_mapping, input_info, output_info, downsample_option_value);
+  return NULL;
+}
+
+ervp_hwtask_busy_fx_t _matrix_max_sw(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c)
+{
+  assert(a->datatype != MATRIX_DATATYPE_UINT32);
+  assert(b->datatype != MATRIX_DATATYPE_UINT32);
+  assert(c->datatype != MATRIX_DATATYPE_UINT32);
+  assert(matrix_is_same_size(a, b));
+  assert(matrix_is_same_size(a, c));
+  if (a->datatype == MATRIX_DATATYPE_FLOAT32)
+    _matrix_max_float_sw(mop_mapping, a, b, c);
+  else
+    _matrix_max_fixed_sw(mop_mapping, a, b, c);
+  return NULL;
+}
+
+ervp_hwtask_busy_fx_t _matrix_min_sw(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c)
+{
+  assert(a->datatype != MATRIX_DATATYPE_UINT32);
+  assert(b->datatype != MATRIX_DATATYPE_UINT32);
+  assert(c->datatype != MATRIX_DATATYPE_UINT32);
+  assert(matrix_is_same_size(a, b));
+  assert(matrix_is_same_size(a, c));
+  if (a->datatype == MATRIX_DATATYPE_FLOAT32)
+    _matrix_min_float_sw(mop_mapping, a, b, c);
+  else
+    _matrix_min_fixed_sw(mop_mapping, a, b, c);
+  return NULL;
+}
+
+ervp_hwtask_busy_fx_t _matrix_asl_sw(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c)
+{
+  assert(a->datatype != MATRIX_DATATYPE_UINT32);
+  assert(b->datatype != MATRIX_DATATYPE_UINT32);
+  assert(c->datatype != MATRIX_DATATYPE_UINT32);
+  assert(matrix_is_same_size(a, b));
+  assert(matrix_is_same_size(a, c));
+  assert(!matrix_datatype_is_float(a->datatype));
+  _matrix_asl_fixed_sw(mop_mapping, a, b, c);
+  return NULL;
+}
+
+ervp_hwtask_busy_fx_t _matrix_asr_sw(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c)
+{
+  assert(a->datatype != MATRIX_DATATYPE_UINT32);
+  assert(b->datatype != MATRIX_DATATYPE_UINT32);
+  assert(c->datatype != MATRIX_DATATYPE_UINT32);
+  assert(matrix_is_same_size(a, b));
+  assert(matrix_is_same_size(a, c));
+  assert(!matrix_datatype_is_float(a->datatype));
+  _matrix_asr_fixed_sw(mop_mapping, a, b, c);
+  return NULL;
+}
+
+ervp_hwtask_busy_fx_t _matrix_compare_sw(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c, unsigned int compare_mode)
+{
+  assert(a->datatype != MATRIX_DATATYPE_UINT32);
+  assert(b->datatype != MATRIX_DATATYPE_UINT32);
+  assert(c->datatype != MATRIX_DATATYPE_UINT32);
+  assert(matrix_is_same_size(a, b));
+  assert(matrix_is_same_size(a, c));
+  if (a->datatype == MATRIX_DATATYPE_FLOAT32)
+    _matrix_compare_float_sw(mop_mapping, a, b, c, compare_mode);
+  else
+    _matrix_compare_fixed_sw(mop_mapping, a, b, c, compare_mode);
   return NULL;
 }

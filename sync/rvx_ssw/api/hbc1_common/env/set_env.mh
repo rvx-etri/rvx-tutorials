@@ -1,2 +1,0 @@
-C_SRC += $(wildcard ${RVX_SSW_HOME}/api/hbc1_common/src/*.c)
-INCLUDES += -I${RVX_SSW_HOME}/api/hbc1_common/src

@@ -1,10 +1,10 @@
 #include "ervp_printf.h"
 #include "ervp_assert.h"
 #include "ervp_malloc.h"
-
 #include "ervp_tensor.h"
+#include "ervp_smart_flush.h"
 
-ErvpTensorInfo *tensor_make(int num_dim)//, int datatype)
+ErvpTensorInfo *tensor_make(int num_dim)//, ervp_matrix_datatype_t datatype)
 {
   ErvpTensorInfo *a = (ErvpTensorInfo *)malloc(sizeof(ErvpTensorInfo));
   assert(a);
@@ -32,7 +32,7 @@ void tensor_alloc(ErvpTensorInfo *a)
 
   int alloc_size = a->size[a->num_dim - 1] * a->stride[a->num_dim - 1];
   //printf("\nalloc_size: %d", alloc_size);
-  a->addr = (void *)malloc(alloc_size);
+  a->addr = (void *)trackedvar_malloc(alloc_size);
   assert(a->addr);
 }
 

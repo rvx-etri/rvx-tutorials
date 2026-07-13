@@ -7,6 +7,7 @@ refcount_t *refcount_alloc(void *data, void (*deleter)(void *))
   assert(data);
   assert(deleter);
   refcount_t *result = malloc(sizeof(refcount_t));
+  assert(result);
   result->data = data;
   result->count = 0;
   result->deleter = deleter;

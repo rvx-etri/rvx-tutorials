@@ -77,6 +77,13 @@ ifeq ($(USE_DARKNET),true)
 	-include ${RVX_SSW_HOME}/darknet/env/set_env.mh
 endif
 
+ifndef USE_GENERATED
+USE_GENERATED = false
+ifeq ($(USE_FAKEFILE),true)
+  USE_GENERATED = true
+endif
+endif
+
 LD_SCRIPT = ${PLATFORM_DIR}/arch/ssw/env/link.ld
 TARGET_NAME = $(APP_NAME).$(PLATFORM_NAME)
 

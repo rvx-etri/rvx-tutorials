@@ -1,3 +1,4 @@
+#include "ervp_smart_flush.h"
 #include "ervp_special_matrix_op.h"
 #include "ervp_matrix_op_sw.h"
 #include "ervp_matrix_op_transform.h"
@@ -5,14 +6,18 @@
 ervp_hwtask_busy_fx_t matrix_copy2copy_part_tf(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, ErvpMatrixInfo *c, unsigned int option_value)
 {
   assert(matrix_is_same_size(a, c));
-  return mop_mapping->matrix_copy_part(mop_mapping, a, c, a->num_row, a->num_col, option_value);
+  ervp_hwtask_busy_fx_t hwtask_busy_fx = mop_mapping->matrix_copy_part(mop_mapping, a, c, a->num_row, a->num_col, option_value);
+  c->is_binary = a->is_binary;
+  return hwtask_busy_fx;
 }
 
 ervp_hwtask_busy_fx_t matrix_transpose2transpose_part_tf(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, ErvpMatrixInfo *c, unsigned int option_value)
 {
   assert(a->num_row == c->num_col);
   assert(a->num_col == c->num_row);
-  return mop_mapping->matrix_transpose_part(mop_mapping, a, c, a->num_row, a->num_col, option_value);
+  ervp_hwtask_busy_fx_t hwtask_busy_fx = mop_mapping->matrix_transpose_part(mop_mapping, a, c, a->num_row, a->num_col, option_value);
+  c->is_binary = a->is_binary;
+  return hwtask_busy_fx;
 }
 
 static inline int get_num_row_of_parted_input(int kernel_size, int num_row_of_parted_output)
@@ -114,7 +119,7 @@ ervp_hwtask_busy_fx_t matrix_conv2mult_v1_tf(ervp_mop_mapping_t *mop_mapping, co
   conv_option.value = conv_option_value;
   if (conv_option.br.performs_cliping || conv_option.br.rshift)
   {
-    int datatype = matrix_datatype_is_float(output_info->datatype) ? MATRIX_DATATYPE_FLOAT32 : MATRIX_DATATYPE_SINT32;
+    ervp_matrix_datatype_t datatype = matrix_datatype_is_float(output_info->datatype) ? MATRIX_DATATYPE_FLOAT32 : MATRIX_DATATYPE_SINT32;
     ErvpMatrixInfo *temp_info = matrix_alloc(datatype, output_info->num_row, output_info->num_col, NULL);
 
     ervp_mconv_option_t conv_only_option;
@@ -242,6 +247,8 @@ ervp_hwtask_busy_fx_t matrix_perform_postprocess_tf(ervp_mop_mapping_t *mop_mapp
       }
     }
     c->is_binary = a->is_binary;
+    trackedvar_add(a->addr, 0);
+    trackedvar_add(c->addr, 1);
   }
   else
   {
@@ -330,8 +337,8 @@ ervp_hwtask_busy_fx_t matrix_conv_sharedinput_im2col_tf(ervp_mop_mapping_t *mop_
 {
   assert(0);
   // printf_function();
-  assert(matrix_has_simple_layout(kernel_info_list[0]));
-  assert(matrix_has_simple_layout(output_info_list[0]));
+  assert(matrix_has_contiguous_layout(kernel_info_list[0]));
+  assert(matrix_has_contiguous_layout(output_info_list[0]));
 
   ervp_hwtask_busy_fx_t hwtask_busy_fx = NULL;
 

@@ -9,12 +9,12 @@
   #define assert_msg(...) ((void)0)
 #else
   #define assert(expr) assert_must(expr)
-  #define assert_msg(expr, ...) {if(!(expr)) { assert_must_msg(expr, __VA_ARGS__); }}
+  #define assert_msg(expr, ...) do {if(!(expr)) { assert_must_msg(expr, __VA_ARGS__); }} while(0)
 #endif
 
 #define assert_must(expr) assert_must_msg(expr, #expr)
 #define assert_must_msg(expr, ...) assert_must_info(expr, __FILE__, __LINE__, __func__, __VA_ARGS__)
-#define assert_must_info(expr, file, line, func, ...) {if(!(((unsigned int)(expr)))) _assert_fail_rvx(file, line, func, __VA_ARGS__);}
+#define assert_must_info(expr, file, line, func, ...) do {if(!(((unsigned int)(expr)))) _assert_fail_rvx(file, line, func, __VA_ARGS__);} while(0)
 
 void _assert_fail_rvx(const char* file, unsigned int line, const char* func, const char* format, ...);
 

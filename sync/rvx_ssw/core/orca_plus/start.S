@@ -14,6 +14,7 @@
 .type _start,@function
 
 _start:
+  INIT_REG
 .option push
 .option norelax
 	la gp, _gp

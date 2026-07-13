@@ -32,10 +32,12 @@ PROJECT_FILE=./${PROJECT_DIR}/"${PROJECT_NAME}".xpr
 
 XCI_LIST = $(shell ${PYTHON3_CMD} ${RVX_UTIL_HOME}/os_util.py dir_list ${CURDIR}/xci )
 
+VIVADO=vivado
+
 project:
 	@if ! [ -f ${PROJECT_FILE} ] ;	\
 	then \
-		vivado -mode batch -source ./make_ip_project.tcl; \
+		${VIVADO} -mode batch -source ./make_ip_project.tcl; \
 	else \
 		echo "Vivado project already exists"; \
 	fi;
@@ -43,10 +45,10 @@ project:
 all: clean_project project gen
 
 open:
-	-@vivado ${PROJECT_FILE}
+	-@${VIVADO} ${PROJECT_FILE}
 
 gen:
-	-@cd ${PROJECT_DIR}; vivado -mode batch -source ../generate_xci.tcl
+	-@cd ${PROJECT_DIR}; ${VIVADO} -mode batch -source ../generate_xci.tcl
 
 update: $(addprefix update., $(XCI_LIST))
 

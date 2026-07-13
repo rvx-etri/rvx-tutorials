@@ -1,6 +1,7 @@
 #include <limits.h>
 #include "ervp_assert.h"
 #include "ervp_matrix_op.h"
+#include "ervp_smart_flush.h"
 
 static inline void _matrix_downsample_fixed_each_sw(const ErvpMatrixInfo *input_info, ErvpMatrixInfo *output_info, int o_row_index, int o_col_index, ervp_mdownsample_option_t downsample_option)
 {
@@ -123,6 +124,7 @@ static inline void _matrix_downsample_fixed_each_sw(const ErvpMatrixInfo *input_
 
 ervp_hwtask_busy_fx_t _matrix_downsample_fixed_sw(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *input_info, ErvpMatrixInfo *output_info, unsigned int downsample_option_value)
 {
+  // printf_function();
   ervp_mdownsample_option_t downsample_option;
   downsample_option.value = downsample_option_value;
   for(int o_row_index = 0; o_row_index < output_info->num_row; o_row_index++)
@@ -138,13 +140,10 @@ ervp_hwtask_busy_fx_t _matrix_downsample_fixed_sw(ervp_mop_mapping_t *mop_mappin
     case DOWNSAMPLE_MAX:
       output_info->is_binary = input_info->is_binary;
       break;
-    case DOWNSAMPLE_AVERAGE:
-    case DOWNSAMPLE_SUM:
-      output_info->is_binary = 0;
-      break;
-    default:
-      assert(0);
   }
+  //
+  trackedvar_add(input_info->addr, 0);
+  trackedvar_add(output_info->addr, 1);
   return NULL;
 }
 

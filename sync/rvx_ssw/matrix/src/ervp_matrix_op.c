@@ -8,7 +8,7 @@
 #include "ervp_math.h"
 #include "core_dependent.h"
 
-int _melement_perform_rshift_and_clip(int value, int rshift, int performs_cliping, int datatype)
+int _melement_perform_rshift_and_clip(int value, int rshift, int performs_cliping, ervp_matrix_datatype_t datatype)
 {
   int result = math_div_by_shift(value, rshift);
   if (performs_cliping)
@@ -28,7 +28,7 @@ ErvpMatrixInfo *matrix_conv_alloc_output(const ErvpMatrixInfo *input_info, const
   ErvpMatrixInfo *result;
   int o_num_row = matrix_conv_output_rows(input_info->num_row, kernel_info->num_row, conv_option_value);
   int o_num_col = matrix_conv_output_cols(input_info->num_col, kernel_info->num_col, conv_option_value);
-  int datatype;
+  ervp_matrix_datatype_t datatype;
   datatype = matrix_datatype_is_float(input_info->datatype) ? MATRIX_DATATYPE_FLOAT32 : MATRIX_DATATYPE_SINT32;
   result = matrix_alloc(datatype, o_num_row, o_num_col, NULL);
   return result;
@@ -103,9 +103,7 @@ ervp_mop_mapping_t *matrix_op_mapping_alloc()
   mapping->matrix_conv_sharedinput = matrix_conv_sharedinput_tf;
   mapping->matrix_conv_sharedoutput = matrix_conv_sharedoutput_tf;
   mapping->matrix_downsample = _matrix_downsample_sw;
-
-  mapping->matrix_scalar_mult_fixed = _matrix_scalar_mult_fixed_sw;
-  mapping->matrix_scalar_mult_float = _matrix_scalar_mult_float_sw;
+  
   mapping->matrix_shift_fixed = _matrix_shift_fixed_sw;
   mapping->matrix_pad = matrix_pad2copy_tf;
 
@@ -117,6 +115,13 @@ ervp_mop_mapping_t *matrix_op_mapping_alloc()
   mapping->matrix_transpose = matrix_transpose2transpose_part_tf;
   mapping->matrix_zero = matrix_zero2fill_tf;
   mapping->matrix_one = matrix_one2fill_tf;
+
+  mapping->matrix_max = _matrix_max_sw;
+  mapping->matrix_min = _matrix_min_sw;
+  mapping->matrix_asl = _matrix_asl_sw;
+  mapping->matrix_asr = _matrix_asr_sw;
+
+  mapping->matrix_compare = _matrix_compare_sw;
 
   return mapping;
 }

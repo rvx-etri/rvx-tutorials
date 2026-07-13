@@ -62,7 +62,7 @@
 			<role>receiver</role>
 			<comm_type>memory:data_c</comm_type>
 			<memorymap>
-				<size>0x10000</size>
+				<size>CAPACITY</size>
 			</memorymap>
 			<parameter>
 				<id>bw_addr</id>

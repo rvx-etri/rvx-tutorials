@@ -5,6 +5,7 @@
 
 dca_matrix_info_t *dca_matrix_info_generate(const ErvpMatrixInfo *info, dca_matrix_info_t *prealloated)
 {
+  assert(info);
   dca_matrix_info_t *result;
   if (prealloated != NULL)
     result = prealloated;

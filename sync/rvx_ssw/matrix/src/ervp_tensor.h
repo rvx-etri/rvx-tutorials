@@ -2,14 +2,13 @@
 #define __ERVP_TENSOR_H__
 
 #include <stdint.h>
-#include "platform_info.h"
 
 typedef struct {
 	void *addr;
 	int *size;
 	int *stride; // stride[0] is data size of value.
 	int num_dim;
-	//int datatype;
+	//ervp_matrix_datatype_t datatype;
 } ErvpTensorInfo;
 
 

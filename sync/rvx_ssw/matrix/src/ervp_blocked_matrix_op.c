@@ -30,7 +30,7 @@ ervp_hwtask_busy_fx_t blocked_matrix_mult(ervp_blocked_matrix_info_t *blocked_in
   ErvpMatrixInfo *temp_buffer = NULL; // due to overflow
   if (HAS_POST_PROCESS)
   {
-    int datatype = matrix_datatype_is_float(c->datatype) ? MATRIX_DATATYPE_FLOAT32 : MATRIX_DATATYPE_SINT32;
+    ervp_matrix_datatype_t datatype = matrix_datatype_is_float(c->datatype) ? MATRIX_DATATYPE_FLOAT32 : MATRIX_DATATYPE_SINT32;
     temp_buffer = matrix_alloc(datatype, block_size, block_size, NULL);
   }
 
@@ -95,6 +95,68 @@ ervp_hwtask_busy_fx_t blocked_matrix_mult(ervp_blocked_matrix_info_t *blocked_in
     hwtask_wait_complete(hwtask_busy_fx);
     hwtask_busy_fx = NULL;
     matrix_free(temp_buffer);
+  }
+  return hwtask_busy_fx;
+}
+
+ervp_hwtask_busy_fx_t blocked_matrix_op(int block_size, void *p_subblock_function, ervp_mop_mapping_t *subop_mapping, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c, unsigned int option_value)
+{
+  assert(p_subblock_function);
+  assert(a);
+  assert(b);
+  assert(c);
+  assert(!a->is_scalar);
+  assert(!c->is_scalar);
+
+  ervp_hwtask_busy_fx_t (*p_subblock_function_real)(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c, unsigned int option_value) = p_subblock_function;
+  ervp_hwtask_busy_fx_t hwtask_busy_fx = NULL;
+  ErvpMatrixInfo block_a = *a;
+  block_a.num_row = block_size;
+  block_a.is_sub = 1;
+  ErvpMatrixInfo block_b = *b;
+  if (!b->is_scalar)
+  {
+    block_b.num_row = block_size;
+    block_b.is_sub = 1;
+  }
+  ErvpMatrixInfo block_c = *c;
+  block_c.num_row = block_size;
+  block_c.is_sub = 1;
+
+  for (int m = 0; m < a->num_row; m += block_size)
+  {
+    int remain_row = a->num_row - m;
+    if (remain_row < block_size)
+    {
+      block_a.num_row = remain_row;
+      if (!b->is_scalar)
+        block_b.num_row = remain_row;
+      block_c.num_row = remain_row;
+    }
+
+    block_a.num_col = block_size;
+    if (!b->is_scalar)
+      block_b.num_col = block_size;
+    block_c.num_col = block_size;
+
+    for (int n = 0; n < a->num_col; n += block_size)
+    {
+      int remain_col = a->num_col - n;
+      if (remain_col < block_size)
+      {
+        block_a.num_col = remain_col;
+        if (!b->is_scalar)
+          block_b.num_col = remain_col;
+        block_c.num_col = remain_col;
+      }
+
+      block_a.addr = matrix_get_element_addr(a, m, n);
+      if (!b->is_scalar)
+        block_b.addr = matrix_get_element_addr(b, m, n);
+      block_c.addr = matrix_get_element_addr(c, m, n);
+
+      hwtask_busy_fx = p_subblock_function_real(subop_mapping, &block_a, &block_b, &block_c, option_value);
+    }
   }
   return hwtask_busy_fx;
 }
@@ -255,11 +317,15 @@ static ervp_hwtask_busy_fx_t _blocked_matrix_conv_nopad(ervp_blocked_matrix_info
   block_o.datatype = output_info->datatype;
   block_o.num_row = output_block_size;
   block_o.is_binary = output_info->is_binary;
+  block_o.is_sub = 1;
+  block_o.is_scalar = 0;
   ErvpMatrixInfo block_i;
   block_i.stride_ls3 = input_info->stride_ls3;
   block_i.datatype = input_info->datatype;
   block_i.num_row = input_block_size;
   block_i.is_binary = input_info->is_binary;
+  block_i.is_sub = 1;
+  block_i.is_scalar = 0;
 
   // m, n are indexes of the output_matrix
   ervp_hwtask_busy_fx_t hwtask_busy_fx = NULL;
@@ -360,12 +426,16 @@ static ervp_hwtask_busy_fx_t _blocked_matrix_conv_sharedinput_nopad(ervp_blocked
     block_o_list[i].datatype = output_info_list[i]->datatype;
     block_o_list[i].num_row = output_block_size;
     block_o_list[i].is_binary = output_info_list[i]->is_binary;
+    block_o_list[i].is_sub = 1;
+    block_o_list[i].is_scalar = 0;
   }
   ErvpMatrixInfo block_i;
   block_i.stride_ls3 = input_info->stride_ls3;
   block_i.datatype = input_info->datatype;
   block_i.num_row = input_block_size;
   block_i.is_binary = input_info->is_binary;
+  block_i.is_sub = 1;
+  block_i.is_scalar = 0;
 
   // m, n are indexes of the output_matrix
   ervp_hwtask_busy_fx_t hwtask_busy_fx = NULL;
@@ -470,6 +540,8 @@ ervp_hwtask_busy_fx_t _blocked_matrix_conv_sharedoutput_nopad(ervp_blocked_matri
   block_o.datatype = output_info->datatype;
   block_o.num_row = output_block_size;
   block_o.is_binary = output_info->is_binary;
+  block_o.is_sub = 1;
+  block_o.is_scalar = 0;
   ErvpMatrixInfo *p_block_i_list[num_input];
   ErvpMatrixInfo block_i_list[num_input];
   for (int i = 0; i < num_input; i++)
@@ -480,6 +552,8 @@ ervp_hwtask_busy_fx_t _blocked_matrix_conv_sharedoutput_nopad(ervp_blocked_matri
     block_i_list[i].datatype = input_info_list[i]->datatype;
     block_i_list[i].num_row = input_block_size;
     block_i_list[i].is_binary = input_info_list[i]->is_binary;
+    block_i_list[i].is_sub = 1;
+    block_i_list[i].is_scalar = 0;
   }
 
   // m, n are indexes of the output_matrix
@@ -563,6 +637,7 @@ ervp_hwtask_busy_fx_t blocked_matrix_conv_sharedoutput(ervp_blocked_matrix_info_
   return hwtask_busy_fx;
 }
 
+/*
 ervp_hwtask_busy_fx_t blocked_matrix_conv_sharedoutput_old(ervp_blocked_matrix_info_t *blocked_info, int num_input, const ErvpMatrixInfo **input_info_list, const ErvpMatrixInfo **kernel_info_list, ErvpMatrixInfo *output_info, unsigned int conv_option_value, int init_ouptut)
 {
   assert(blocked_info);
@@ -581,3 +656,4 @@ ervp_hwtask_busy_fx_t blocked_matrix_conv_sharedoutput_old(ervp_blocked_matrix_i
   }
   return hwtask_busy_fx;
 }
+  */

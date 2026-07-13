@@ -40,6 +40,8 @@ typedef unsigned char uint8_t;
 #include <stdint.h>   /* uint8_t, uint32_t */
 #endif
 
+#include "ervp_platform_api.h" // kshan: insert
+#include "ervp_assert.h" // kshan: insert
 #include "ervp_malloc.h" // kshan: insert
 
 /* These macros use decltype or the earlier __typeof GNU extension.

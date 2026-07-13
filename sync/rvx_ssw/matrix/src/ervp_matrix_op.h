@@ -81,6 +81,14 @@ typedef union
 
 typedef struct _ervp_mop_mapping ervp_mop_mapping_t;
 
+static const unsigned int COMPARE_LT = 1;
+static const unsigned int COMPARE_EQ = 2;
+static const unsigned int COMPARE_GT = 4;
+
+static const unsigned int COMPARE_LE = COMPARE_LT | COMPARE_EQ;
+static const unsigned int COMPARE_NE = COMPARE_LT | COMPARE_GT;
+static const unsigned int COMPARE_GE = COMPARE_GT | COMPARE_EQ;
+
 typedef struct _ervp_mop_mapping
 {
   ervp_hwtask_busy_fx_t (*matrix_copy_part)(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, ErvpMatrixInfo *c, int num_row, int num_col, unsigned int option_value);
@@ -96,8 +104,6 @@ typedef struct _ervp_mop_mapping
   ervp_hwtask_busy_fx_t (*matrix_conv_sharedoutput)(ervp_mop_mapping_t *mop_mapping, int num_input, const ErvpMatrixInfo **input_info_list, const ErvpMatrixInfo **kernel_info_list, ErvpMatrixInfo *output_info, unsigned int conv_option_value, int init_output);
   ervp_hwtask_busy_fx_t (*matrix_downsample)(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *input_info, ErvpMatrixInfo *output_info, unsigned int downsample_option_value);
 
-  ervp_hwtask_busy_fx_t (*matrix_scalar_mult_fixed)(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, int scalar_value, ErvpMatrixInfo *c, unsigned int option_value);
-  ervp_hwtask_busy_fx_t (*matrix_scalar_mult_float)(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, float scalar_value, ErvpMatrixInfo *c, unsigned int option_value);
   ervp_hwtask_busy_fx_t (*matrix_shift_fixed)(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, int shamount, ErvpMatrixInfo *c, unsigned int option_value);
   ervp_hwtask_busy_fx_t (*matrix_pad)(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, ErvpMatrixInfo *c, unsigned int pad_option_value);
 
@@ -110,10 +116,17 @@ typedef struct _ervp_mop_mapping
   ervp_hwtask_busy_fx_t (*matrix_zero)(ervp_mop_mapping_t *mop_mapping, ErvpMatrixInfo *result);
   ervp_hwtask_busy_fx_t (*matrix_one)(ervp_mop_mapping_t *mop_mapping, ErvpMatrixInfo *result);
 
+  ervp_hwtask_busy_fx_t (*matrix_max)(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c);
+  ervp_hwtask_busy_fx_t (*matrix_min)(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c);
+  ervp_hwtask_busy_fx_t (*matrix_asl)(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c);
+  ervp_hwtask_busy_fx_t (*matrix_asr)(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c);
+
+  ervp_hwtask_busy_fx_t (*matrix_compare)(ervp_mop_mapping_t *mop_mapping, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c, unsigned int compare_mode);
+
 } ervp_mop_mapping_t;
 
 // ervp_mop_option_t
-int _melement_perform_rshift_and_clip(int value, int rshift, int performs_cliping, int datatype);
+int _melement_perform_rshift_and_clip(int value, int rshift, int performs_cliping, ervp_matrix_datatype_t datatype);
 
 static inline ervp_mop_option_t mop_option_alloc(unsigned int value)
 {
@@ -171,6 +184,13 @@ static inline unsigned int matrix_conv_set_pad(unsigned int conv_option_value, i
   conv_option.br.pad_has_colu = 1;
   conv_option.br.pad_mode = pad_mode;
   return conv_option.value;
+}
+
+static inline int mconv_option_has_postprocess(unsigned int value)
+{
+  ervp_mconv_option_t conv_option;
+  conv_option.value = value;
+  return (conv_option.br.performs_cliping | conv_option.br.rshift | conv_option.br.stride_m1) != 0;
 }
 
 static inline unsigned int matrix_conv_has_pad(unsigned int conv_option_value)

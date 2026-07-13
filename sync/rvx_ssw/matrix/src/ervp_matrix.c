@@ -6,27 +6,29 @@
 #include "ervp_float.h"
 #include "ervp_malloc.h"
 #include "ervp_memory_util.h"
+#include "ervp_smart_flush.h"
 
 int matrix_num_bytes(const ErvpMatrixInfo *info)
 {
-  int num_bytes = matrix_get_num_bytes_per_row(info) * info->num_row;
+  assert(matrix_get_num_bytes_per_row(info) == rshift_ru(info->stride_ls3, 3));
+  int num_bytes = rshift_ru(info->stride_ls3 * info->num_row, 3);
   return num_bytes;
 }
 
-ErvpMatrixInfo *matrix_generate_info(int datatype, int num_row, int num_col, void *array_1d, ErvpMatrixInfo *prealloacted)
+ErvpMatrixInfo *matrix_generate_info(ervp_matrix_datatype_t datatype, int num_row, int num_col, void *array_1d, ErvpMatrixInfo *preallocated)
 {
   ErvpMatrixInfo *result;
-  if (prealloacted != NULL)
+  if (preallocated != NULL)
   {
     // DO NOT check the below
     /*
-    assert(prealloacted->datatype==datatype);
-    assert(prealloacted->num_row==num_row);
-    assert(prealloacted->num_col==num_col);
-    if(prealloacted->is_array_allocated)
-      free(prealloacted->addr);
+    assert(preallocated->datatype==datatype);
+    assert(preallocated->num_row==num_row);
+    assert(preallocated->num_col==num_col);
+    if(preallocated->is_array_allocated)
+      free(preallocated->addr);
     */
-    result = prealloacted;
+    result = preallocated;
   }
   else
   {
@@ -37,30 +39,32 @@ ErvpMatrixInfo *matrix_generate_info(int datatype, int num_row, int num_col, voi
   result->datatype = datatype;
   result->num_row = num_row;
   result->num_col = num_col;
-  result->stride_ls3 = matrix_get_num_bits_per_row(result);
+  result->stride_ls3 = ALIGN_UP_POW2(matrix_get_num_bits_per_row(result), 8);
   result->addr = array_1d;
-  
+
   result->is_array_allocated = 0;
-  result->is_binary = 0;
+  result->is_binary = (datatype == MATRIX_DATATYPE_UINT01);
   result->bit_offset = 0;
+  result->is_sub = 0;
+  result->is_scalar = 0;
 
   return result;
 }
 
-ErvpMatrixInfo* matrix_generate_submatrix_info(const ErvpMatrixInfo* original_matrix, ErvpMatrixInfo *prealloacted)
+ErvpMatrixInfo *matrix_generate_submatrix_info(const ErvpMatrixInfo *original_matrix, ErvpMatrixInfo *preallocated)
 {
   ErvpMatrixInfo *result;
-  if (prealloacted != NULL)
+  if (preallocated != NULL)
   {
     // DO NOT check the below
     /*
-    assert(prealloacted->datatype==datatype);
-    assert(prealloacted->num_row==num_row);
-    assert(prealloacted->num_col==num_col);
-    if(prealloacted->is_array_allocated)
-      free(prealloacted->addr);
+    assert(preallocated->datatype==datatype);
+    assert(preallocated->num_row==num_row);
+    assert(preallocated->num_col==num_col);
+    if(preallocated->is_array_allocated)
+      free(preallocated->addr);
     */
-    result = prealloacted;
+    result = preallocated;
   }
   else
   {
@@ -69,15 +73,16 @@ ErvpMatrixInfo* matrix_generate_submatrix_info(const ErvpMatrixInfo* original_ma
   }
   *result = *original_matrix;
   result->is_array_allocated = 0;
+  result->is_sub = 1;
   return result;
 }
 
-ErvpMatrixInfo *matrix_alloc(int datatype, int num_row, int num_col, ErvpMatrixInfo *prealloacted)
+ErvpMatrixInfo *matrix_alloc(ervp_matrix_datatype_t datatype, int num_row, int num_col, ErvpMatrixInfo *preallocated)
 {
   ErvpMatrixInfo *result;
-  result = matrix_generate_info(datatype, num_row, num_col, NULL, prealloacted);
+  result = matrix_generate_info(datatype, num_row, num_col, NULL, preallocated);
   int row_size = matrix_get_num_bytes_per_row(result);
-  result->addr = malloc(row_size * num_row);
+  result->addr = trackedvar_malloc(row_size * num_row);
   assert(result->addr);
   result->is_array_allocated = 1;
   matrix_set_stride(result, row_size);
@@ -88,10 +93,7 @@ void matrix_free(ErvpMatrixInfo *ptr)
 {
   assert(ptr);
   if (ptr->is_array_allocated)
-  {
-    assert(ptr->addr);
-    free(ptr->addr);
-  }
+    trackedvar_free(ptr->addr);
   free(ptr);
 }
 
@@ -103,7 +105,7 @@ void matrix_list_free(ErvpMatrixInfo **ptr, int num)
   free(ptr);
 }
 
-static int _matrix_compare_float(const ErvpMatrixInfo *result, const ErvpMatrixInfo *ref, int prints)
+static int _matrix_equal_float(const ErvpMatrixInfo *result, const ErvpMatrixInfo *ref, int prints)
 {
   assert(result->datatype == MATRIX_DATATYPE_FLOAT32);
   assert(ref->datatype == MATRIX_DATATYPE_FLOAT32);
@@ -149,7 +151,7 @@ static int _matrix_compare_float(const ErvpMatrixInfo *result, const ErvpMatrixI
   return all_are_equal;
 }
 
-static int _matrix_compare_fixed(const ErvpMatrixInfo *result, const ErvpMatrixInfo *ref, int prints)
+static int _matrix_equal_fixed(const ErvpMatrixInfo *result, const ErvpMatrixInfo *ref, int prints)
 {
   int all_are_equal = 1;
   for (int i = 0; i < result->num_row; i++)
@@ -158,9 +160,9 @@ static int _matrix_compare_fixed(const ErvpMatrixInfo *result, const ErvpMatrixI
     {
       UNKNOWN_TYPE result_element = _matrix_read_element(result, i, j);
       UNKNOWN_TYPE ref_element = _matrix_read_element(ref, i, j);
-      if (result_element.hex != ref_element.hex)
+      if (result_element.value_signed != ref_element.value_signed)
       {
-        printf("\nDiff: (%d, %d) %x %x", i, j, result_element.hex, ref_element.hex);
+        printf("\nDiff: (%d, %d) %x %x", i, j, result_element.value_signed, ref_element.value_signed);
         all_are_equal = 0;
         break;
       }
@@ -178,7 +180,7 @@ static int _matrix_compare_fixed(const ErvpMatrixInfo *result, const ErvpMatrixI
   return all_are_equal;
 }
 
-static int _matrix_compare_fast(const ErvpMatrixInfo *result, const ErvpMatrixInfo *ref, int prints)
+static int _matrix_equal_fast(const ErvpMatrixInfo *result, const ErvpMatrixInfo *ref, int prints)
 {
   int all_are_equal = 1;
   int row_size = matrix_get_num_bytes_per_row(result);
@@ -187,7 +189,7 @@ static int _matrix_compare_fast(const ErvpMatrixInfo *result, const ErvpMatrixIn
     void *result_row_addr = matrix_get_row_addr(result, i);
     void *ref_row_addr = matrix_get_row_addr(ref, i);
     all_are_equal &= memory_compare(result_row_addr, ref_row_addr, row_size, 0);
-    if (all_are_equal==0)
+    if (all_are_equal == 0)
     {
       printf("\nDiff row: %d", i);
       break;
@@ -203,8 +205,7 @@ static int _matrix_compare_fast(const ErvpMatrixInfo *result, const ErvpMatrixIn
   return all_are_equal;
 }
 
-__attribute__((weak))
-int matrix_compare(const ErvpMatrixInfo *result, const ErvpMatrixInfo *ref, int prints)
+__attribute__((weak)) int matrix_equal(const ErvpMatrixInfo *result, const ErvpMatrixInfo *ref, int prints)
 {
   int all_are_equal;
   assert(result);
@@ -215,7 +216,7 @@ int matrix_compare(const ErvpMatrixInfo *result, const ErvpMatrixInfo *ref, int 
   if (!all_are_equal)
     ;
   else if (matrix_datatype_is_float(result->datatype))
-    all_are_equal = _matrix_compare_float(result, ref, prints);
+    all_are_equal = _matrix_equal_float(result, ref, prints);
   else
   {
     int is_fast_possible = 1;
@@ -233,14 +234,14 @@ int matrix_compare(const ErvpMatrixInfo *result, const ErvpMatrixInfo *ref, int 
     else if ((num_bits_per_row & 7) != 0)
       is_fast_possible = 0;
     if (is_fast_possible)
-      all_are_equal = _matrix_compare_fast(result, ref, prints);
+      all_are_equal = _matrix_equal_fast(result, ref, prints);
     else
-      all_are_equal = _matrix_compare_fixed(result, ref, prints);
+      all_are_equal = _matrix_equal_fixed(result, ref, prints);
   }
   return all_are_equal;
 }
 
-int matrix_compare_one_by_one(const ErvpMatrixInfo *result, const ErvpMatrixInfo *ref, float error_rate, int prints)
+int matrix_equal_one_by_one(const ErvpMatrixInfo *result, const ErvpMatrixInfo *ref, float error_rate, int prints)
 {
   int all_are_equal;
   assert(result);
@@ -251,13 +252,13 @@ int matrix_compare_one_by_one(const ErvpMatrixInfo *result, const ErvpMatrixInfo
   if (!all_are_equal)
     ;
   else if (matrix_datatype_is_float(result->datatype))
-    all_are_equal = _matrix_compare_float(result, ref, prints);
+    all_are_equal = _matrix_equal_float(result, ref, prints);
   else
-    all_are_equal = _matrix_compare_fixed(result, ref, prints);
+    all_are_equal = _matrix_equal_fixed(result, ref, prints);
   return all_are_equal;
 }
 
-const char *matrix_datatype_get_name(int datatype)
+const char *matrix_datatype_get_name(ervp_matrix_datatype_t datatype)
 {
   char *result;
   switch (datatype)
@@ -307,7 +308,7 @@ const char *matrix_datatype_get_name(int datatype)
 
 void matrix_print_brief(const ErvpMatrixInfo *mat)
 {
-  printf("\n\n0x%08p, 0x%08p", mat->addr, mat->stride_ls3 >> 3);
+  printf("\n\n0x%08x, 0x%08x", mat->addr, mat->stride_ls3 >> 3);
   printf("\n%s %d x %d", matrix_datatype_get_name(mat->datatype), mat->num_row, mat->num_col);
 }
 

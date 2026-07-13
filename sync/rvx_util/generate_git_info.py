@@ -42,7 +42,11 @@ def get_git_name(path:Path):
   assert path.is_dir(), path
   result = get_git_url(path)
   re_git_name = memorize(reexp_identifier) + r'\.git\b'
-  git_name = re.findall(re_git_name,result, re.DOTALL)[0]
+  git_name_list = re.findall(re_git_name,result, re.DOTALL)
+  if git_name_list:
+    git_name = git_name_list[0]
+  else:
+    git_name = result.split('/')[-1]
   return git_name
 
 def get_git_date(path:Path):

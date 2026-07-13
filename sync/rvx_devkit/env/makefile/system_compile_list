@@ -1,1 +1,1 @@
-USE_FAKEFILE,all:../../util/generated/ssw
+USE_GENERATED,all:../../util/generated/ssw

@@ -400,7 +400,7 @@ wire    [1:0]   SSCBADR2SDR;
 wire    [3:0]   SSCDQM2SDR;
 wire    [3:0]   nSSCDOE2SDR;
 
-assign i_platform.LPSDR_CLK_FB = i_platform.LPSDR_CLK;
+assign #2 i_platform.LPSDR_CLK_FB = i_platform.LPSDR_CLK;
 
 generate
 for(i_sdram_dq=0; i_sdram_dq < BW_SDRAM_DATA; i_sdram_dq = i_sdram_dq + 1)
@@ -412,7 +412,7 @@ endgenerate
 
 // PAD delay
 
-assign SCLK2SDR    = i_platform.clk_sdram_cell;
+assign SCLK2SDR    = i_platform.clk_sdram;
 assign nSSCCS02SDR = LPSDR_CS0_N;
 assign nSSCCS12SDR = LPSDR_CS1_N;
 assign nSSCRAS2SDR = LPSDR_RAS_N;
@@ -454,26 +454,26 @@ IS42VM16160K uSDR_U (
 
 `endif
 
-//////////////
-// EXT_MRAM //
-//////////////
+//////////////////
+// OFFCHIP_MRAM //
+//////////////////
 
-`ifdef SIMULATE_EXT_MRAM_BEHAVIOR
+`ifdef SIMULATE_OFFCHIP_MRAM_BEHAVIOR
 
-localparam [63:0] EXT_MRAM_WRITE_RECOVERY_TIME_NS = 12;
-localparam [63:0] EXT_MRAM_WRITE_TIME_NS = 35 + 10;
+localparam [63:0] OFFCHIP_MRAM_WRITE_RECOVERY_TIME_NS = 12;
+localparam [63:0] OFFCHIP_MRAM_WRITE_TIME_NS = 35 + 10;
 
-localparam [63:0] EXT_MRAM_WRITE_RECOVERY_CYCLE = ((EXT_MRAM_WRITE_RECOVERY_TIME_NS-1)*`EXT_MRAM_CLK_HZ/1000000000) + 1;
-localparam [63:0] EXT_MRAM_WRITE_CYCLE = (((EXT_MRAM_WRITE_TIME_NS-1)*`EXT_MRAM_CLK_HZ)/1000000000) + 1;
+localparam [63:0] OFFCHIP_MRAM_WRITE_RECOVERY_CYCLE = ((OFFCHIP_MRAM_WRITE_RECOVERY_TIME_NS-1)*`OFFCHIP_MRAM_CLK_HZ/1000000000) + 1;
+localparam [63:0] OFFCHIP_MRAM_WRITE_CYCLE = (((OFFCHIP_MRAM_WRITE_TIME_NS-1)*`OFFCHIP_MRAM_CLK_HZ)/1000000000) + 1;
 
-localparam BW_EXT_MRAM_DATA = 32;
+localparam BW_OFFCHIP_MRAM_DATA = 32;
 
 wire EXTMR_E_N;
 wire EXTMR_W_N;
 wire EXTMR_G_N;
 wire [(4)-1:0] EXTMR_BE_N;
 wire [(21)-1:0] EXTMR_A;
-wire [BW_EXT_MRAM_DATA-1:0]    EXTMR_DQ;
+wire [BW_OFFCHIP_MRAM_DATA-1:0]    EXTMR_DQ;
 
 wire [(32)-1:0] EXTMR_DQ_sod;
 wire [(32)-1:0] EXTMR_DQ_soval;
@@ -482,7 +482,7 @@ wire [(32)-1:0] EXTMR_DQ_sival;
 genvar i_mram_dq;
 
 generate
-for(i_mram_dq=0; i_mram_dq < BW_EXT_MRAM_DATA; i_mram_dq = i_mram_dq + 1)
+for(i_mram_dq=0; i_mram_dq < BW_OFFCHIP_MRAM_DATA; i_mram_dq = i_mram_dq + 1)
 begin : i_connect_mram_dq
 	assign EXTMR_DQ[i_mram_dq] = i_platform.tristate_buffer_for_EXTMR_DQ_rod_list[i_mram_dq]? 1'hz : i_platform.EXTMR_DQ[i_mram_dq];
 	assign i_platform.EXTMR_DQ[i_mram_dq] = i_platform.tristate_buffer_for_EXTMR_DQ_rod_list[i_mram_dq]? EXTMR_DQ[i_mram_dq] : 1'hz;

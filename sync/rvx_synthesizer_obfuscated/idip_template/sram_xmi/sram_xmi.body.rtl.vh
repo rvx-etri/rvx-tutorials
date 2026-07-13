@@ -19,11 +19,17 @@ wire lqlast;
 wire lqafy;
 wire [BW_LPI_QDATA-1:0] lqdata;
 
+wire [BW_LPI_BURDEN-1:0] lqburden;
+wire [BW_LPI_QPARCEL-1:0] lqparcel;
+
 wire [2-1:0] lydready;
 wire lyvalid;
 wire lyhint;
 wire lylast;
 wire [BW_LPI_YDATA-1:0] lydata;
+
+wire [BW_LPI_BURDEN-1:0] lyburden;
+wire [BW_LPI_YPARCEL-1:0] lyparcel;
 
 wire [NUM_CELL-1:0] cell_select_list;
 wire [BW_CELL_INDEX*NUM_CELL-1:0] cell_index_list;
@@ -96,12 +102,18 @@ assign lqvalid = rlxqvalid;
 assign lqhint = 0;
 assign lqlast = rlxqlast;
 assign lqafy = (~rlxqwrite) | rlxqlast;
-assign lqdata = {rlxqburden,rlxqwrite,rlxqlen,rlxqsize,rlxqburst,rlxqwstrb,rlxqwdata,rlxqaddr};
+assign lqdata = {lqburden, lqparcel};
+
+assign lqburden = rlxqburden;
+assign lqparcel = {rlxqlast,rlxqwrite,rlxqlen,rlxqsize,rlxqburst,rlxqwstrb,rlxqwdata,rlxqaddr};
 
 assign lydready = rlxydready;
 assign rlxyvalid = lyvalid;
 assign rlxylast = lylast;
-assign {rlxyburden,rlxywreply,rlxyresp,rlxyrdata} = lydata;
+assign {lyburden, lyparcel} = lydata;
+
+assign rlxyburden = lyburden;
+assign {rlxywreply,rlxyresp,rlxyrdata} = lyparcel;
 
 generate
 for(i=0; i<NUM_CELL; i=i+1)

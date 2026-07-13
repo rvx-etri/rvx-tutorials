@@ -11,11 +11,17 @@ typedef struct
   ervp_mop_mapping_t *subop_mapping;
 } ervp_blocked_matrix_info_t;
 
+static inline void blocked_matrix_info_init(ervp_blocked_matrix_info_t *info)
+{
+  assert(info);
+  info->block_size = 0;
+  info->subop_mapping = NULL;
+}
+
 static inline ervp_blocked_matrix_info_t *blocked_matrix_info_alloc()
 {
   ervp_blocked_matrix_info_t *info = malloc(sizeof(ervp_blocked_matrix_info_t));
-  info->block_size = 0;
-  info->subop_mapping = NULL;
+  blocked_matrix_info_init(info);
   return info;
 }
 
@@ -23,6 +29,8 @@ static inline void blocked_matrix_info_free(ervp_blocked_matrix_info_t *blocked_
 {
   free(blocked_info);
 }
+
+ervp_hwtask_busy_fx_t blocked_matrix_op(int block_size, void *p_subblock_function, ervp_mop_mapping_t *subop_mapping, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c, unsigned int option_value);
 
 ervp_hwtask_busy_fx_t blocked_matrix_add(ervp_blocked_matrix_info_t *blocked_info, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c, unsigned int option_value);
 ervp_hwtask_busy_fx_t blocked_matrix_sub(ervp_blocked_matrix_info_t *blocked_info, const ErvpMatrixInfo *a, const ErvpMatrixInfo *b, ErvpMatrixInfo *c, unsigned int option_value);

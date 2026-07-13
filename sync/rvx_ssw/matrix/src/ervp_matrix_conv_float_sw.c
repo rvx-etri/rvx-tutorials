@@ -1,5 +1,6 @@
 #include <string.h>
 #include "ervp_matrix_op.h"
+#include "ervp_smart_flush.h"
 
 static inline void _matrix_conv_float_each_sw(const ErvpMatrixInfo *input_info, const ErvpMatrixInfo *kernel_info, ErvpMatrixInfo *output_info, int o_row_index, int o_col_index, ervp_mconv_option_t conv_option)
 {
@@ -8,6 +9,8 @@ static inline void _matrix_conv_float_each_sw(const ErvpMatrixInfo *input_info, 
   int i_row_index, i_col_index;
   float i_value;
   float k_value;
+  assert(!input_info->is_scalar);
+  assert(!kernel_info->is_scalar);
 
   const int row_index_dd = _matrix_conv_cal_start_row_index_of_input_matrix(kernel_info->num_row, o_row_index, conv_option);
   const int col_index_dd = _matrix_conv_cal_start_col_index_of_input_matrix(kernel_info->num_col, o_col_index, conv_option);
@@ -68,6 +71,7 @@ static inline void _matrix_conv_float_each_sw(const ErvpMatrixInfo *input_info, 
 
 ervp_hwtask_busy_fx_t _matrix_conv_float_sw(ervp_mop_mapping_t* mop_mapping, const ErvpMatrixInfo *input_info, const ErvpMatrixInfo *kernel_info, ErvpMatrixInfo *output_info, unsigned int conv_option_value)
 {
+  // printf_function();
   ervp_mconv_option_t conv_option;
   int o_row_index, o_col_index;
   conv_option.value = conv_option_value;
@@ -78,7 +82,10 @@ ervp_hwtask_busy_fx_t _matrix_conv_float_sw(ervp_mop_mapping_t* mop_mapping, con
       _matrix_conv_float_each_sw(input_info, kernel_info, output_info, o_row_index, o_col_index, conv_option);
     }
   }
-  output_info->is_binary = 0;
+  //
+  trackedvar_add(input_info->addr, 0);
+  trackedvar_add(kernel_info->addr, 0);
+  trackedvar_add(output_info->addr, 1);
   return NULL;
 }
 

@@ -32,8 +32,8 @@
 #ifdef INCLUDE_EDGE_VIDEO_SYSTEM
 #include "edge_video_system.h"
 #endif
-#ifdef INCLUDE_EXT_MRAM
-#include "ip_instance_info.h"
+#ifdef INCLUDE_OFFCHIP_MRAM
+#include "ervp_offchip_mram.h"
 #endif
 
 extern linker_var_t _bss_start_;
@@ -52,11 +52,6 @@ extern linker_var_t _dram_start_;
 extern linker_var_t _dram_end_;
 extern linker_var_t _heap_dram_baseaddr_;
 #endif
-
-extern volatile unsigned int heap_sram_addr;
-extern volatile unsigned int heap_sram_lastaddr;
-extern volatile unsigned int heap_dram_addr;
-extern volatile unsigned int heap_dram_lastaddr;
 
 int num_restart NON_VOLATILE = 0;
 
@@ -185,18 +180,11 @@ void _init_platform()
 		num_restart++;
 		if (num_restart > 1)
 			printf_must("\n[RVX/RESTART] %d", num_restart);
-#ifdef INCLUDE_EXT_MRAM
-		volatile int ext_mram_config;
-		if (EXT_MRAM_CYCLE > 0)
-		{
-			ext_mram_config = 1 << EXT_MRAM_CYCLE;
-			mmiox1_config_write(i_system_ext_mram_control_info, &ext_mram_config);
-		}
-		if (!is_sim())
-		{
-			mmiox1_config_read(i_system_ext_mram_control_info, &ext_mram_config);
-			printf_must("\n[RVX/EXT_MRAM/CONFIG] %d", ext_mram_config);
-		}
+#ifdef INCLUDE_OFFCHIP_MRAM
+		if (OFFCHIP_MRAM_CYCLE > 0)
+			offchip_mram_set_access_cycle(OFFCHIP_MRAM_CYCLE);
+		int access_cycle = offchip_mram_get_access_cycle();
+		printf_must("\n[RVX/MRAM] %d", access_cycle);
 #endif
 		printf_must("\n");
 
@@ -217,6 +205,10 @@ void _init_platform()
 		worker_core_entry();
 	else if (core_id == 0)
 	{
+#ifdef PROFILE_OFFCHIP_MRAM
+		offchip_mram_profile_start(0, 0);
+		offchip_mram_profile_start(1, 0);
+#endif
 		if (!is_sim())
 		{
 			profiling_init();
@@ -298,14 +290,14 @@ void _init_heap()
 	{
 #ifdef USE_SMALL_RAM
 		heap_sram_addr = GET_LINKER_VAR(_heap_sram_baseaddr_);
-		heap_sram_lastaddr = ((unsigned int)SMALL_RAM_LASTADDR);
+		heap_sram_size = ((unsigned int)SMALL_RAM_LASTADDR) - heap_sram_addr + 1;
 #endif
 #ifdef USE_LARGE_RAM
 		heap_dram_addr = GET_LINKER_VAR(_heap_dram_baseaddr_);
-#ifdef INCLUDE_EXT_MRAM
+#ifdef INCLUDE_OFFCHIP_MRAM
 		heap_dram_addr += round_up_int(_get_backup_total_size(), DATA_ALIGN_SIZE);
 #endif
-		heap_dram_lastaddr = ((unsigned int)LARGE_RAM_LASTADDR);
+		heap_dram_size = ((unsigned int)LARGE_RAM_LASTADDR) - heap_dram_addr + 1;
 #endif
 	}
 }
@@ -350,6 +342,11 @@ void exit_platform()
 			profiling_print();
 			printf_must("\n\n[RVX/END]\n");
 		}
+#ifdef PROFILE_OFFCHIP_MRAM
+		flush_cache();
+		offchip_mram_profile_finish(-1);
+		offchip_mram_profile_print();
+#endif
 #ifdef USE_FAKEFILE
 		fakefile_prepare_dump();
 #endif

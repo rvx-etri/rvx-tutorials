@@ -47,7 +47,7 @@ PARA_DIR=${CURDIR}/result
 endif
 PARA_DIR_ABS = $(call absolute_path,${PARA_DIR})
 
-XARVIS_GIT_VERSION_STABLE=af0ca1
+XARVIS_GIT_VERSION_STABLE=a190ffa
 XARVIS_GIT_VERSION?=${XARVIS_GIT_VERSION_STABLE}
 
 check:
@@ -84,38 +84,38 @@ ${ALL_APP_CFG_NAME_LIST}:%: check_train_home %.train %.riscv %.sample %.opt %.ge
 
 $(addsuffix .train, ${ALL_APP_CFG_NAME_LIST}):%.train:
 ifdef XARVIS_NPX_TRANIER_HOME
-	cd ${XARVIS_NPX_TRANIER_HOME} && make train CFG_FILE="${APP_CFG_DIR_ABS}/$(*).cfg" RESULT_DIR=${PARA_DIR_ABS}
+	cd ${XARVIS_NPX_TRANIER_HOME} && make --no-print-directory train CFG_FILE="${APP_CFG_DIR_ABS}/$(*).cfg" RESULT_DIR=${PARA_DIR_ABS}
 endif
 
 $(addsuffix .riscv, ${ALL_APP_CFG_NAME_LIST}):%.riscv:
 ifdef XARVIS_NPX_TRANIER_HOME
-	cd ${XARVIS_NPX_TRANIER_HOME} && make riscv CFG_FILE="${APP_CFG_DIR_ABS}/$(*).cfg" RESULT_DIR=${PARA_DIR_ABS}
+	cd ${XARVIS_NPX_TRANIER_HOME} && make --no-print-directory riscv CFG_FILE="${APP_CFG_DIR_ABS}/$(*).cfg" RESULT_DIR=${PARA_DIR_ABS}
 endif
 
 $(addsuffix .sample, ${ALL_APP_CFG_NAME_LIST}):%.sample:
 ifdef XARVIS_NPX_TRANIER_HOME
 	@${PYTHON3_CMD} ${RVX_UTIL_HOME}/os_util.py rm_files ${PARA_DIR_ABS}/$(*)/riscv *_sample_*.*
 	@${PYTHON3_CMD} ${RVX_UTIL_HOME}/os_util.py rm_files ${PARA_DIR_ABS}/$(*)/riscv *_layeroutput_*.*
-	cd ${XARVIS_NPX_TRANIER_HOME} && make sample CFG_FILE="${APP_CFG_DIR_ABS}/$(*).cfg" RESULT_DIR=${PARA_DIR_ABS} NUM_SAMPLE=${NUM_SAMPLE}
+	cd ${XARVIS_NPX_TRANIER_HOME} && make --no-print-directory sample CFG_FILE="${APP_CFG_DIR_ABS}/$(*).cfg" RESULT_DIR=${PARA_DIR_ABS} NUM_SAMPLE=${NUM_SAMPLE}
 endif
 
 $(addsuffix .tv, ${ALL_APP_CFG_NAME_LIST}):%.tv:
 ifdef XARVIS_NPX_TRANIER_HOME
 	@${PYTHON3_CMD} ${RVX_UTIL_HOME}/os_util.py rm_files ${PARA_DIR_ABS}/$(*)/riscv *_sample_*.*
 	@${PYTHON3_CMD} ${RVX_UTIL_HOME}/os_util.py rm_files ${PARA_DIR_ABS}/$(*)/riscv *_layeroutput_*.*
-	cd ${XARVIS_NPX_TRANIER_HOME} && make tv CFG_FILE="${APP_CFG_DIR_ABS}/$(*).cfg" RESULT_DIR=${PARA_DIR_ABS} NUM_SAMPLE=${NUM_SAMPLE}
+	cd ${XARVIS_NPX_TRANIER_HOME} && make --no-print-directory tv CFG_FILE="${APP_CFG_DIR_ABS}/$(*).cfg" RESULT_DIR=${PARA_DIR_ABS} NUM_SAMPLE=${NUM_SAMPLE}
 endif
 
 $(addsuffix .opt, ${ALL_APP_CFG_NAME_LIST}):%.opt:
-	cd ${RVX_ENV}/util && ${PYTHON3_CMD} ./generate_npx_operator_info.py -cfg "${APP_CFG_DIR_ABS}/$(*).cfg" -ssw_info ${SSW_INFO_FILE} -o ${PARA_DIR_ABS} -s _operator
+	@cd ${RVX_ENV}/util && ${PYTHON3_CMD} ./generate_npx_operator_info.py -cfg "${APP_CFG_DIR_ABS}/$(*).cfg" -ssw_info ${SSW_INFO_FILE} -o ${PARA_DIR_ABS} -s _operator
 
 $(addsuffix .gen_file, ${ALL_APP_CFG_NAME_LIST}):%.gen_file: %.clean_generated
 	@cd ${UTIL_DIR} && make --no-print-directory fakefile
 	@cd ${UTIL_DIR} && make --no-print-directory generated
 	@${PYTHON3_CMD} ${RVX_UTIL_HOME}/os_util.py mkdir ${RESULT_DIR}
-	cd ${FAKEFIE_DIR} && make convert FILE_LIST="${APP_CFG_DIR_ABS}/$(*)_preprocess.cfg" RESULT_DIR=${RESULT_DIR}
-	cd ${FAKEFIE_DIR} && make convert FILE_LIST="$(wildcard ${PARA_DIR_ABS}/$(*)/riscv/$(*)*.bin)" RESULT_DIR=${RESULT_DIR}
-	cd ${FAKEFIE_DIR} && make convert FILE_LIST="$(wildcard ${PARA_DIR_ABS}/$(*)/riscv/$(*)*.cfg)" RESULT_DIR=${RESULT_DIR}
+	@cd ${FAKEFIE_DIR} && make --no-print-directory convert FILE_LIST="${APP_CFG_DIR_ABS}/$(*)_preprocess.cfg" RESULT_DIR=${RESULT_DIR}
+	@cd ${FAKEFIE_DIR} && make --no-print-directory convert FILE_LIST="$(wildcard ${PARA_DIR_ABS}/$(*)/riscv/$(*)*.bin)" RESULT_DIR=${RESULT_DIR}
+	@cd ${FAKEFIE_DIR} && make --no-print-directory convert FILE_LIST="$(wildcard ${PARA_DIR_ABS}/$(*)/riscv/$(*)*.cfg)" RESULT_DIR=${RESULT_DIR}
 
 $(addsuffix .clean_generated, ${ALL_APP_CFG_NAME_LIST}):%.clean_generated:
 	@${PYTHON3_CMD} ${RVX_UTIL_HOME}/os_util.py rm_files ${RESULT_DIR} $(*)_*_file.*
@@ -124,7 +124,9 @@ clean_generated: $(addsuffix .clean_generated, ${ALL_APP_CFG_NAME_LIST})
 
 $(addsuffix .only, ${ALL_APP_CFG_NAME_LIST}):%.only: clean_generated %.train %.riscv %.sample %.opt %.gen_file
 
-$(addsuffix .verify, ${ALL_APP_CFG_NAME_LIST}):%.verify: clean_generated %.train %.riscv %.tv %.opt %.gen_file
+$(addsuffix .verify, ${ALL_APP_CFG_NAME_LIST}):%.verify: %.clean_generated %.train %.riscv %.tv %.opt %.gen_file
+
+$(addsuffix .verify_only, ${ALL_APP_CFG_NAME_LIST}):%.verify_only: clean_generated %.train %.riscv %.tv %.opt %.gen_file
 
 verify:
 	make verify_app.verify NUM_SAMPLE=3

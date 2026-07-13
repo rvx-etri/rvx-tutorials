@@ -1,4 +1,3 @@
-#include "platform_info.h"
 #include "ervp_printf.h"
 #include "ervp_malloc.h"
 #include "ervp_assert.h"
@@ -7,7 +6,6 @@
 #include "ervp_matrix_op_sw.h"
 #include "ervp_matrix_op_transform.h"
 #include "ervp_special_matrix_op.h"
-#include "npx_profiling.h"
 
 #include <string.h>
 #include <stdint.h>
@@ -15,7 +13,9 @@
 
 #include "npx_tensor.h"
 #include "npx_layer.h"
+#include "npx_profiling.h"
 
+/*
 static void npx_forward_conv2d_layer_matrix_old(npx_conv2d_layer_t *layer, ervp_mop_mapping_t *mop_mapping, npx_layerio_state_t *state)
 {
   if (mop_mapping == NULL)
@@ -41,7 +41,7 @@ static void npx_forward_conv2d_layer_matrix_old(npx_conv2d_layer_t *layer, ervp_
     size[0] = layer->iodata.out_size[0];
     size[1] = layer->iodata.out_size[1];
     size[2] = layer->iodata.out_channels;
-    int datatype = layer->iodata.out_is_quantized ? MATRIX_DATATYPE_SINT32 : MATRIX_DATATYPE_FLOAT32;
+    ervp_matrix_datatype_t datatype = layer->iodata.out_is_quantized ? MATRIX_DATATYPE_SINT32 : MATRIX_DATATYPE_FLOAT32;
     state->output_tsseq = npx_output_tsseq_alloc(timesteps, state->input_tsseq->is_boundary, state->input_tsseq->scaled, datatype, 3, size);
 
     ervp_hwtask_busy_fx_t hwtask_busy_fx = NULL;
@@ -81,6 +81,7 @@ static void npx_forward_conv2d_layer_matrix_old(npx_conv2d_layer_t *layer, ervp_
     }
   }
 }
+*/
 
 static void _forward_conv2d_layer_matrix_sharedoutput(npx_conv2d_layer_t *layer, ervp_mop_mapping_t *mop_mapping, npx_layerio_state_t *state)
 {
@@ -93,12 +94,13 @@ static void _forward_conv2d_layer_matrix_sharedoutput(npx_conv2d_layer_t *layer,
 
   assert(layer->pad_options.br.num_rowd == 0);
 
-  int size[3];
-  size[0] = layer->iodata.out_size[0];
-  size[1] = layer->iodata.out_size[1];
-  size[2] = layer->iodata.out_channels;
-  int datatype = layer->iodata.out_is_quantized ? MATRIX_DATATYPE_SINT32 : MATRIX_DATATYPE_FLOAT32;
-  state->output_tsseq = npx_output_tsseq_alloc(timesteps, state->input_tsseq->is_boundary, state->input_tsseq->scaled, datatype, 3, size);
+  npx_tensor_dim_size_t size_array[3];
+  size_array[0] = layer->iodata.out_size[0];
+  size_array[1] = layer->iodata.out_size[1];
+  size_array[2] = layer->iodata.out_channels;
+  // ervp_matrix_datatype_t datatype = layer->iodata.out_is_quantized ? MATRIX_DATATYPE_SINT32 : MATRIX_DATATYPE_FLOAT32;
+  ervp_matrix_datatype_t datatype = layer->iodata.out_datatype;
+  state->output_tsseq = npx_output_tsseq_alloc(timesteps, state->input_tsseq->is_boundary, state->input_tsseq->scaled, datatype, 3, size_array);
 
   ervp_hwtask_busy_fx_t hwtask_busy_fx = NULL;
   ervp_mconv_option_t conv_option;
@@ -136,12 +138,13 @@ static void _forward_conv2d_layer_matrix_sharedinput(npx_conv2d_layer_t *layer, 
   assert(timesteps > 0);
   assert(layer->iodata.out_channels > 0);
 
-  int size[3];
-  size[0] = layer->iodata.out_size[0];
-  size[1] = layer->iodata.out_size[1];
-  size[2] = layer->iodata.out_channels;
-  int datatype = layer->iodata.out_is_quantized ? MATRIX_DATATYPE_SINT32 : MATRIX_DATATYPE_FLOAT32;
-  state->output_tsseq = npx_output_tsseq_alloc(timesteps, state->input_tsseq->is_boundary, state->input_tsseq->scaled, datatype, 3, size);
+  npx_tensor_dim_size_t size_array[3];
+  size_array[0] = layer->iodata.out_size[0];
+  size_array[1] = layer->iodata.out_size[1];
+  size_array[2] = layer->iodata.out_channels;
+  // ervp_matrix_datatype_t datatype = layer->iodata.out_is_quantized ? MATRIX_DATATYPE_SINT32 : MATRIX_DATATYPE_FLOAT32;
+  ervp_matrix_datatype_t datatype = layer->iodata.out_datatype;
+  state->output_tsseq = npx_output_tsseq_alloc(timesteps, state->input_tsseq->is_boundary, state->input_tsseq->scaled, datatype, 3, size_array);
 
   ervp_hwtask_busy_fx_t hwtask_busy_fx = NULL;
   ervp_mconv_option_t conv_option;
@@ -150,6 +153,7 @@ static void _forward_conv2d_layer_matrix_sharedinput(npx_conv2d_layer_t *layer, 
   conv_option.value = matrix_conv_set_pad(conv_option.value, layer->pad_options.br.num_rowd, layer->pad_options.br.mode);
   conv_option.br.stride_m1 = layer->stride - 1;
 
+  hwtask_busy_fx = npx_tensor_zero(mop_mapping, npx_tensor_get_original_tensor(state->output_tsseq->sequence[0]));
   for (int i = 0; i < timesteps; i++)
   {
     NpxTensorInfo *input_tensor3d = state->input_tsseq->sequence[i];
@@ -158,9 +162,6 @@ static void _forward_conv2d_layer_matrix_sharedinput(npx_conv2d_layer_t *layer, 
     assert(output_tensor3d);
 
     ErvpMatrixInfo **output_matrix_info_list = npx_tensor_to_matrix_info_list(output_tensor3d, 1, layer->iodata.out_channels);
-    for (int j = 0; j < layer->iodata.out_channels; j++)
-      hwtask_busy_fx = mop_mapping->matrix_zero(mop_mapping, output_matrix_info_list[j]);
-
     ErvpMatrixInfo *input_matrix = NULL;
     for (int k = 0; k < layer->iodata.in_channels; k++)
     {
@@ -181,46 +182,51 @@ static void _check_conv2d_layer(npx_conv2d_layer_t *layer, ervp_mop_mapping_t *m
   assert(state->output_tsseq == NULL);
 
   const NpxTensorInfo *const input_tensor = state->input_tsseq->sequence[0];
-  assert(layer->iodata.in_size[0] == input_tensor->size[0]);
-  assert(layer->iodata.in_size[1] == input_tensor->size[1]);
-  assert(layer->iodata.out_size[0] == (((input_tensor->size[0] + 2 * layer->pad_options.br.num_rowd - layer->kernel_size) / layer->stride) + 1));
-  assert(layer->iodata.out_size[1] == (((input_tensor->size[1] + 2 * layer->pad_options.br.num_rowd - layer->kernel_size) / layer->stride) + 1));
+  assert(layer->iodata.in_size[0] == npx_tensor_get_size(input_tensor, 0));
+  assert(layer->iodata.in_size[1] == npx_tensor_get_size(input_tensor, 1));
+  assert(layer->iodata.out_size[0] == (((npx_tensor_get_size(input_tensor, 0) + 2 * layer->pad_options.br.num_rowd - layer->kernel_size) / layer->stride) + 1));
+  assert(layer->iodata.out_size[1] == (((npx_tensor_get_size(input_tensor, 1) + 2 * layer->pad_options.br.num_rowd - layer->kernel_size) / layer->stride) + 1));
 }
 
 __attribute__((weak)) void npx_forward_conv2d_layer_reuse(npx_conv2d_layer_t *layer, ervp_mop_mapping_t *mop_mapping, npx_layerio_state_t *state)
 {
-  assert(mop_mapping);
   _check_conv2d_layer(layer, mop_mapping, state);
-  // NOT supported
-  if (layer->pad_options.br.num_rowd > 0)
-    assert(layer->pad_options.br.mode == PADMODE_ZEROS);
-
-  int use_multi_input = 0;
-  if (layer->pad_options.br.num_rowd != 0)
-    use_multi_input = 0;
-  else if (layer->stride != 1)
-    use_multi_input = 0;
-  else if ((layer->iodata.in_channels == 1) && (layer->iodata.out_channels == 1))
-    use_multi_input = 1;
-  else if (layer->iodata.out_channels == 1)
-    use_multi_input = 1;
-  else if (layer->iodata.in_channels == 1)
-    use_multi_input = 0;
-  else if (mop_mapping->matrix_conv_sharedoutput != matrix_conv_sharedoutput_tf)
-    use_multi_input = 1;
-  else
-    use_multi_input = 0;
 
   NPX_PROFILING_START();
-  if (use_multi_input)
-  {
-    assert(mop_mapping->matrix_conv_sharedoutput);
-    _forward_conv2d_layer_matrix_sharedoutput(layer, mop_mapping, state);
-  }
+  if (mop_mapping == NULL)
+    npx_forward_conv2d_layer_default(layer, mop_mapping, state);
   else
   {
-    assert(mop_mapping->matrix_conv_sharedinput);
-    _forward_conv2d_layer_matrix_sharedinput(layer, mop_mapping, state);
+    // NOT supported
+    if (layer->pad_options.br.num_rowd > 0)
+      assert(layer->pad_options.br.mode == PADMODE_ZEROS);
+
+    int use_multi_input = 0;
+    if (layer->pad_options.br.num_rowd != 0)
+      use_multi_input = 0;
+    else if (layer->stride != 1)
+      use_multi_input = 0;
+    else if ((layer->iodata.in_channels == 1) && (layer->iodata.out_channels == 1))
+      use_multi_input = 1;
+    else if (layer->iodata.out_channels == 1)
+      use_multi_input = 1;
+    else if (layer->iodata.in_channels == 1)
+      use_multi_input = 0;
+    else if (mop_mapping->matrix_conv_sharedoutput != matrix_conv_sharedoutput_tf)
+      use_multi_input = 1;
+    else
+      use_multi_input = 0;
+
+    if (use_multi_input)
+    {
+      assert(mop_mapping->matrix_conv_sharedoutput);
+      _forward_conv2d_layer_matrix_sharedoutput(layer, mop_mapping, state);
+    }
+    else
+    {
+      assert(mop_mapping->matrix_conv_sharedinput);
+      _forward_conv2d_layer_matrix_sharedinput(layer, mop_mapping, state);
+    }
   }
   NPX_PROFILING_END();
 }

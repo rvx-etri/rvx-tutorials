@@ -5,7 +5,7 @@
 
 static const int DATATYPE_FROM_INFO = -1;
 
-ErvpMatrixInfo *matrix_read_csv_file(const char *filename, int datatype, int check_value_range);
+ErvpMatrixInfo *matrix_read_csv_file(const char *filename, ervp_matrix_datatype_t datatype, int check_value_range);
 void matrix_write_csv_file(const ErvpMatrixInfo *matrix, const char *filename, int data_only);
 
 #endif

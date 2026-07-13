@@ -21,8 +21,9 @@ TEMPLATE_FILE = ${RVX_ENV}/release/Makefile.platform_only_home.template
 include ${RVX_UTIL_HOME}/template_makefile.mh
 
 config:
-	${PYTHON3_CMD} ${RVX_UTIL_HOME}/configure_template.py -i ./rvx_setup.sh.template -o ./rvx_setup.sh -c RVX_HOME=${RVX_HOME} PACT_GIT_HOME=${PACT_GIT_HOME}
-	-rm -rf ./imp_class_info
-	ln -s ${RVX_HOME}/imp_class_info imp_class_info
+	${PYTHON3_CMD} ${RVX_UTIL_HOME}/configure_template.py -i ./rvx_setup.sh.template -o ./rvx_setup.sh -c RVX_ORIGIN=${RVX_ORIGIN}
+	-rm -rf ./imp_class_info ./hwlib_special
+	ln -s ${RVX_ORIGIN}/imp_class_info imp_class_info
+	ln -s ${RVX_ORIGIN}/hwlib_special hwlib_special
 
 .PHONY:

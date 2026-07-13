@@ -27,6 +27,11 @@
 		<def_parameter>
 			<name>NUM_GLOBAL_TAG</name>
 			<value>1</value>
+    </def_parameter>
+
+    <def_parameter>
+			<name>BW_LOCK_STATUS</name>
+			<value>16</value>
 		</def_parameter>
 
 		<signal>
@@ -56,7 +61,7 @@
 
 		<interface>
 			<name>no_name</name>
-			<library_name>apb</library_name>
+			<library_name>apbe</library_name>
 			<hdl_prefix></hdl_prefix>
 			<role>receiver</role>
 			<comm_type>memory:all</comm_type>
@@ -77,7 +82,7 @@
 
 		<signal>
 			<name>lock_status_list</name>
-			<width>NUM_LOCK</width>
+			<width>NUM_LOCK*BW_LOCK_STATUS</width>
 			<port>output</port>
 			<comm_type>lock_status_list</comm_type>
     </signal>
