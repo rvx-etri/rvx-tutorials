@@ -2,28 +2,28 @@
 <version_info>
   <rvx_version.path>kshan/rvx_server_manager_v2</rvx_version.path>
   <rvx_version.url>private</rvx_version.url>
-  <rvx_version.commit>dff21e9</rvx_version.commit>
-  <rvx_version.date>2026-07-13-18-02</rvx_version.date>
+  <rvx_version.commit>4e61828</rvx_version.commit>
+  <rvx_version.date>2026-07-14-11-13</rvx_version.date>
   <rvx_devkit.path>rvx_server_manager_v2/rvx_devkit</rvx_devkit.path>
   <rvx_devkit.url>private</rvx_devkit.url>
-  <rvx_devkit.commit>3fc58d6</rvx_devkit.commit>
-  <rvx_devkit.date>2026-07-09-03-02</rvx_devkit.date>
+  <rvx_devkit.commit>db42438</rvx_devkit.commit>
+  <rvx_devkit.date>2026-07-13-21-39</rvx_devkit.date>
   <rvx_binary.path>rvx_server_manager_v2/rvx_binary</rvx_binary.path>
   <rvx_binary.url>https://github.com/rvx-etri/rvx_binary.git</rvx_binary.url>
   <rvx_binary.commit>fe4c137</rvx_binary.commit>
   <rvx_binary.date>2025-06-12-17-10</rvx_binary.date>
   <rvx_install.path>rvx_server_manager_v2/rvx_install</rvx_install.path>
   <rvx_install.url>https://github.com/rvx-etri/rvx_install.git</rvx_install.url>
-  <rvx_install.commit>e45b2db</rvx_install.commit>
-  <rvx_install.date>2026-07-13-04-03</rvx_install.date>
+  <rvx_install.commit>cb6ad13</rvx_install.commit>
+  <rvx_install.date>2026-07-13-21-46</rvx_install.date>
   <rvx_synthesizer_obfuscated.path>rvx_server_manager_v2/rvx_synthesizer_obfuscated</rvx_synthesizer_obfuscated.path>
   <rvx_synthesizer_obfuscated.url>https://github.com/rvx-etri/rvx_synthesizer_obfuscated.git</rvx_synthesizer_obfuscated.url>
-  <rvx_synthesizer_obfuscated.commit>de1438a</rvx_synthesizer_obfuscated.commit>
-  <rvx_synthesizer_obfuscated.date>2026-07-09-03-11</rvx_synthesizer_obfuscated.date>
+  <rvx_synthesizer_obfuscated.commit>eb590a4</rvx_synthesizer_obfuscated.commit>
+  <rvx_synthesizer_obfuscated.date>2026-07-13-21-37</rvx_synthesizer_obfuscated.date>
   <rvx_platform_example.path>rvx_server_manager_v2/rvx_platform_example</rvx_platform_example.path>
   <rvx_platform_example.url>https://github.com/rvx-etri/rvx_platform_example.git</rvx_platform_example.url>
-  <rvx_platform_example.commit>a0c59ec</rvx_platform_example.commit>
-  <rvx_platform_example.date>2026-07-09-03-02</rvx_platform_example.date>
+  <rvx_platform_example.commit>c41cdb2</rvx_platform_example.commit>
+  <rvx_platform_example.date>2026-07-13-21-35</rvx_platform_example.date>
   <rvx_library>beta</rvx_library>
   <synced_from>test_server</synced_from>
   <synced_before>true</synced_before>

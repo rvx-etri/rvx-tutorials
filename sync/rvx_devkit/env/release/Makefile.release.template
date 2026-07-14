@@ -153,7 +153,7 @@ recent: recent_subgit fork_rvx_hwlib_special fork_rvx_hwlib_chip
 	source ./rvx_setup.sh; cd ./platform && make engine_check
 	make update_platform_test gitadd_platform_test
 
-recent_subgit: update_rvx_submodule_private update_rvx_hwlib_basic
+recent_subgit: update_rvx_submodule_private update_rvx_submodule_public update_rvx_hwlib_basic
 
 #######
 # dev #
